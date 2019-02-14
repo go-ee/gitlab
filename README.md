@@ -1,2 +1,2 @@
 # gitlab
-Gitlab console utils
+Gitlab helper
