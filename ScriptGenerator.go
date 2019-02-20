@@ -13,6 +13,7 @@ type Params struct {
 	GroupName string
 	Target    string
 	Token     string
+	Ignores   map[string]bool
 }
 
 type commandWriter interface {
@@ -32,6 +33,7 @@ type ScriptGenerator struct {
 	client                 *gitlab.Client
 	alreadyHandledGroupIds map[int]bool
 	writers                []commandWriter
+	ignores                map[string]bool
 }
 
 func Generate(params *Params) (err error) {
@@ -55,6 +57,7 @@ func Generate(params *Params) (err error) {
 			client:                 client,
 			alreadyHandledGroupIds: make(map[int]bool, 0),
 			writers:                commands,
+			ignores:                params.Ignores,
 		}
 
 		if err = generator.createFileWriter(params.Target); err != nil {
@@ -196,7 +199,7 @@ func (o *ScriptGenerator) handleSubGroups(groupId int) (err error) {
 	options := &gitlab.ListSubgroupsOptions{AllAvailable: new(bool)}
 	subGroups, _, err = o.client.Groups.ListSubgroups(groupId, options)
 	for _, subGroup := range subGroups {
-		if !o.alreadyHandledGroupIds[subGroup.ID] {
+		if !o.alreadyHandledGroupIds[subGroup.ID] && !o.ignores[subGroup.Name] {
 			if err = o.generateDir(subGroup); err != nil {
 				logrus.Warn(err)
 			}
@@ -208,7 +211,7 @@ func (o *ScriptGenerator) handleSubGroups(groupId int) (err error) {
 func (o *ScriptGenerator) handleSharedGroups(project *gitlab.Project) (err error) {
 	var loadedGroup *gitlab.Group
 	for _, sharedGroup := range project.SharedWithGroups {
-		if !o.alreadyHandledGroupIds[sharedGroup.GroupID] {
+		if !o.alreadyHandledGroupIds[sharedGroup.GroupID] && !o.ignores[sharedGroup.GroupName] {
 			if loadedGroup, _, err = o.client.Groups.GetGroup(sharedGroup.GroupID); err == nil {
 				if err = o.generateDir(loadedGroup); err != nil {
 					logrus.Warn(err)
