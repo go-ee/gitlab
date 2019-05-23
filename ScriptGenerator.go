@@ -46,7 +46,7 @@ func Generate(params *Params) (err error) {
 	if group, _, err = client.Groups.GetGroup(params.GroupName); err == nil {
 
 		commands := []commandWriter{
-			&repoCommandWriter{&commandFileName{command: "clone", fileName: "clone"}},
+			&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
 			&genericCommandWriter{&commandFileName{command: "pull", fileName: "pull"}},
 			&genericCommandWriter{&commandFileName{command: "status", fileName: "status"}},
 			&genericCommandWriter{&commandFileName{command: "checkout development", fileName: "development"}},
