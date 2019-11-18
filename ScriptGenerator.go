@@ -249,11 +249,27 @@ func (o *commandFileName) createFileWriter(target string) (err error) {
 	o.shWriter = bufio.NewWriter(o.shFile)
 	o.cmdWriter = bufio.NewWriter(o.cmdFile)
 
+	_, err = o.shWriter.WriteString("#!/bin/bash\n")
+
+	//change to directory of the script
+	_, err = o.shWriter.WriteString("DIR=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" >/dev/null 2>&1 && pwd )\"\n")
+	_, err = o.shWriter.WriteString("pushd \"$DIR\"\n")
+
+	_, err = o.cmdWriter.WriteString("pushd \"%~dp0\"\r\n")
+
 	return
 }
 
 func (o *commandFileName) flush() (err error) {
+	if _, err = o.shWriter.WriteString("popd\n"); err != nil {
+		return
+	}
+
 	if err = o.shWriter.Flush(); err != nil {
+		return
+	}
+
+	if _, err = o.cmdWriter.WriteString("popd\r\n"); err != nil {
 		return
 	}
 
