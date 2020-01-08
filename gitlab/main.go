@@ -22,30 +22,30 @@ func main() {
 	app.Version = "1.0"
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  flagToken,
 			Usage: "Gitlab token",
-		}, cli.BoolFlag{
+		}, &cli.BoolFlag{
 			Name:  flagDebug,
 			Usage: "Enable debug log level",
-		}, cli.StringFlag{
+		}, &cli.StringFlag{
 			Name:  flagURL,
 			Usage: "Base url",
 		},
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:  "generateScripts",
 			Usage: "GenerateScripts for clone, pull all projects of a group",
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  flagGroup,
 					Usage: "Gitlab group",
-				}, cli.StringFlag{
+				}, &cli.StringFlag{
 					Name:  flagTarget,
 					Usage: "Target dir",
-				}, cli.StringFlag{
+				}, &cli.StringFlag{
 					Name:  flagIgnores,
 					Usage: "Ignores the comma separated groups",
 				},
@@ -60,17 +60,17 @@ func main() {
 				logrus.Infof("execute %v to %v", c.Command.Name, target)
 
 				ignores := make(map[string]bool)
-				if c.GlobalIsSet(flagIgnores) {
-					for _, name := range strings.Split(c.GlobalString(flagIgnores), ",") {
+				if c.IsSet(flagIgnores) {
+					for _, name := range strings.Split(c.String(flagIgnores), ",") {
 						ignores[name] = true
 					}
 				}
 
 				if err = gitlab.Generate(&gitlab.Params{
-					Url:       c.GlobalString(flagURL),
+					Url:       c.String(flagURL),
 					GroupName: c.String(flagGroup),
 					Target:    target,
-					Token:     c.GlobalString(flagToken),
+					Token:     c.String(flagToken),
 					Ignores:   ignores}); err != nil {
 
 					logrus.Errorf("error %v by %v to %v", err, c.Command.Name, target)
