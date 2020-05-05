@@ -295,19 +295,25 @@ func (o *commandFileName) close() (err error) {
 }
 
 func (o *commandFileName) cdBack() (err error) {
-	_, err = o.shWriter.WriteString("cd ..\n")
+	if _, err = o.shWriter.WriteString("cd ..\n"); err != nil {
+		return
+	}
 	_, err = o.cmdWriter.WriteString("cd ..\r\n")
 	return
 }
 
 func (o *commandFileName) cd(group *gitlab.Group) (err error) {
-	_, err = o.shWriter.WriteString(fmt.Sprintf("cd \"%v\"\n", group.Path))
+	if _, err = o.shWriter.WriteString(fmt.Sprintf("cd \"%v\"\n", group.Path)); err != nil {
+		return
+	}
 	_, err = o.cmdWriter.WriteString(fmt.Sprintf("cd \"%v\"\r\n", group.Path))
 	return
 }
 
 func (o *commandFileName) pause() (err error) {
-	_, err = o.shWriter.WriteString("\nread -n1 -r -p \"Press any key to continue...\" key\n")
+	if _, err = o.shWriter.WriteString("\nread -n1 -r -p \"Press any key to continue...\" key\n"); err != nil {
+		return
+	}
 	_, err = o.cmdWriter.WriteString("\r\npause\r\n")
 	return
 }
@@ -317,14 +323,20 @@ type repoCommandWriter struct {
 }
 
 func (o *repoCommandWriter) command(project *gitlab.Project) (err error) {
-	_, err = o.shWriter.WriteString(fmt.Sprintf("git %v %v\n", o.commandFileName.command, project.SSHURLToRepo))
-	_, err = o.cmdWriter.WriteString(fmt.Sprintf("git %v %v\r\n", o.commandFileName.command, project.SSHURLToRepo))
+	if _, err = o.shWriter.WriteString(fmt.Sprintf("git %v %v\n",
+		o.commandFileName.command, project.SSHURLToRepo)); err != nil {
+		return
+	}
+	_, err = o.cmdWriter.WriteString(fmt.Sprintf("git %v %v\r\n",
+		o.commandFileName.command, project.SSHURLToRepo))
 
 	return
 }
 
 func (o *repoCommandWriter) ensureDir(group *gitlab.Group) (err error) {
-	_, err = o.shWriter.WriteString(fmt.Sprintf("\nmkdir \"%v\"\n", group.Path))
+	if _, err = o.shWriter.WriteString(fmt.Sprintf("\nmkdir \"%v\"\n", group.Path)); err != nil {
+		return
+	}
 	_, err = o.cmdWriter.WriteString(fmt.Sprintf("\r\nmkdir \"%v\"\r\n", group.Path))
 	return
 }
@@ -334,13 +346,31 @@ type genericCommandWriter struct {
 }
 
 func (o *genericCommandWriter) command(project *gitlab.Project) (err error) {
-	_, err = o.shWriter.WriteString(fmt.Sprintf("git -C %v %v\n", project.Path, o.commandFileName.command))
-	_, err = o.cmdWriter.WriteString(fmt.Sprintf("git -C %v %v\r\n", project.Path, o.commandFileName.command))
+	if err = o.echo(project); err != nil {
+		return
+	}
+
+	if _, err = o.shWriter.WriteString(fmt.Sprintf("git -C %v %v\n",
+		project.Path, o.commandFileName.command)); err != nil {
+		return
+	}
+	_, err = o.cmdWriter.WriteString(fmt.Sprintf("git -C %v %v\r\n",
+		project.Path, o.commandFileName.command))
 	return
 }
 
 func (o *genericCommandWriter) ensureDir(group *gitlab.Group) (err error) {
 	_, err = o.shWriter.WriteString(fmt.Sprintf("\n"))
 	_, err = o.cmdWriter.WriteString(fmt.Sprintf("\r\n"))
+	return
+}
+
+func (o *genericCommandWriter) echo(project *gitlab.Project) (err error) {
+	if _, err = o.shWriter.WriteString(fmt.Sprintf("echo \"%v %v\"\n",
+		o.commandFileName.command, project.PathWithNamespace)); err != nil {
+		return
+	}
+	_, err = o.cmdWriter.WriteString(fmt.Sprintf("echo %v %v\r\n",
+		o.commandFileName.command, project.PathWithNamespace))
 	return
 }
