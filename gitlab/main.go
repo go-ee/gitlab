@@ -1,77 +1,89 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
 	"github.com/go-ee/gitlab"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-const flagDebug = "debug"
-const flagToken = "token"
-const flagURL = "url"
-const flagGroup = "group"
-const flagIgnores = "ignores"
-const flagTarget = "target"
-
 func main() {
+	var token, url, group, target, ignores, devBranch string
 	app := cli.NewApp()
 	app.Usage = "Gitlab helper"
 	app.Version = "1.0"
 
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:  flagToken,
-			Usage: "Gitlab token",
-		}, &cli.BoolFlag{
-			Name:  flagDebug,
+		&cli.BoolFlag{
+			Name:  "debug",
 			Usage: "Enable debug log level",
-		}, &cli.StringFlag{
-			Name:  flagURL,
-			Usage: "Base url",
 		},
 	}
 
-	app.Commands = []*cli.Command{
+	commonFlags := []cli.Flag{
+		&cli.StringFlag{
+			Name:        "token",
+			Required:    true,
+			Usage:       "Gitlab token",
+			Value:       ".",
+			Destination: &token,
+		}, &cli.StringFlag{
+			Name:        "url",
+			Required:    true,
+			Usage:       "Base Gitlab server url",
+			Destination: &url,
+		},
+	}
+
+	app.Commands = []cli.Command{
 		{
 			Name:  "generateScripts",
 			Usage: "GenerateScripts for clone, pull all projects of a group",
-			Flags: []cli.Flag{
+			Flags: append(commonFlags,
 				&cli.StringFlag{
-					Name:  flagGroup,
-					Usage: "Gitlab group",
+					Name:        "group",
+					Usage:       "Gitlab group",
+					Required:    true,
+					Destination: &group,
 				}, &cli.StringFlag{
-					Name:  flagTarget,
-					Usage: "Target dir",
+					Name:        "target",
+					Usage:       "Target dir",
+					Destination: &target,
 				}, &cli.StringFlag{
-					Name:  flagIgnores,
-					Usage: "Ignores the comma separated groups",
+					Name:        "ignores",
+					Usage:       "Ignores the comma separated groups",
+					Destination: &ignores,
+				}, &cli.StringFlag{
+					Name:        "devBranch",
+					Usage:       "The default development branch, that will be used in 'devBranch' script",
+					Value:       "development",
+					Destination: &devBranch,
 				},
-			},
+			),
 			Action: func(c *cli.Context) (err error) {
-				var target string
-				if target, err = filepath.Abs(c.String(flagTarget)); err != nil {
+				if target, err = filepath.Abs(target); err != nil {
 					logrus.Errorf("error %v by %v to %v", err, c.Command.Name, target)
 					return
 				}
 
 				logrus.Infof("execute %v to %v", c.Command.Name, target)
 
-				ignores := make(map[string]bool)
-				if c.IsSet(flagIgnores) {
-					for _, name := range strings.Split(c.String(flagIgnores), ",") {
-						ignores[name] = true
+				ignoresMap := make(map[string]bool)
+				if ignores != "" {
+					for _, name := range strings.Split(c.String(ignores), ",") {
+						ignoresMap[name] = true
 					}
 				}
 
 				if err = gitlab.Generate(&gitlab.Params{
-					Url:       c.String(flagURL),
-					GroupName: c.String(flagGroup),
+					Url:       url,
+					GroupName: group,
 					Target:    target,
-					Token:     c.String(flagToken),
-					Ignores:   ignores}); err != nil {
+					Token:     token,
+					DevBranch: devBranch,
+					Ignores:   ignoresMap}); err != nil {
 
 					logrus.Errorf("error %v by %v to %v", err, c.Command.Name, target)
 					return

@@ -3,7 +3,7 @@ package gitlab
 import (
 	"bufio"
 	"fmt"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
 	"os"
 )
@@ -13,6 +13,7 @@ type Params struct {
 	GroupName string
 	Target    string
 	Token     string
+	DevBranch string
 	Ignores   map[string]bool
 }
 
@@ -37,8 +38,8 @@ type ScriptGenerator struct {
 }
 
 func Generate(params *Params) (err error) {
-	client := gitlab.NewClient(nil, params.Token)
-	if err = client.SetBaseURL(params.Url); err != nil {
+	var client *gitlab.Client
+	if client, err = gitlab.NewClient(params.Token, gitlab.WithBaseURL(params.Url)); err != nil {
 		return
 	}
 
@@ -49,7 +50,7 @@ func Generate(params *Params) (err error) {
 			&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
 			&genericCommandWriter{&commandFileName{command: "pull", fileName: "pull"}},
 			&genericCommandWriter{&commandFileName{command: "status", fileName: "status"}},
-			&genericCommandWriter{&commandFileName{command: "checkout development", fileName: "development"}},
+			&genericCommandWriter{&commandFileName{command: "checkout " + params.DevBranch, fileName: "devBranch"}},
 			&genericCommandWriter{&commandFileName{command: "checkout master", fileName: "master"}},
 		}
 
