@@ -8,79 +8,46 @@ import (
 	"os"
 )
 
-type Params struct {
-	Url       string
-	GroupName string
-	Target    string
-	Token     string
-	DevBranch string
-	Ignores   map[string]bool
-}
-
-type commandWriter interface {
-	command(project *gitlab.Project) (err error)
-
-	ensureDir(group *gitlab.Group) (err error)
-	cd(group *gitlab.Group) (err error)
-	cdBack() (err error)
-	pause() (err error)
-
-	createFileWriter(target string) (err error)
-	flush() (err error)
-	close() (err error)
-}
-
 type ScriptGenerator struct {
-	client                 *gitlab.Client
-	alreadyHandledGroupIds map[int]bool
-	writers                []commandWriter
-	ignores                map[string]bool
+	writers   []commandWriter
+	devBranch string
 }
 
-func Generate(params *Params) (err error) {
-	var client *gitlab.Client
-	if client, err = gitlab.NewClient(params.Token, gitlab.WithBaseURL(params.Url)); err != nil {
+func Generate(groupNode *GroupNode, targetDir string, devBranch string) (err error) {
+
+	commands := []commandWriter{
+		&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
+		&genericCommandWriter{&commandFileName{command: "pull", fileName: "pull"}},
+		&genericCommandWriter{&commandFileName{command: "status", fileName: "status"}},
+		&genericCommandWriter{&commandFileName{command: "checkout " + devBranch, fileName: "devBranch"}},
+		&genericCommandWriter{&commandFileName{command: "checkout master", fileName: "master"}},
+	}
+
+	generator := &ScriptGenerator{
+		writers:   commands,
+		devBranch: devBranch,
+	}
+
+	if err = generator.createFileWriter(targetDir); err != nil {
 		return
 	}
 
-	var group *gitlab.Group
-	if group, _, err = client.Groups.GetGroup(params.GroupName); err == nil {
+	defer func() {
+		err = generator.close()
+	}()
 
-		commands := []commandWriter{
-			&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
-			&genericCommandWriter{&commandFileName{command: "pull", fileName: "pull"}},
-			&genericCommandWriter{&commandFileName{command: "status", fileName: "status"}},
-			&genericCommandWriter{&commandFileName{command: "checkout " + params.DevBranch, fileName: "devBranch"}},
-			&genericCommandWriter{&commandFileName{command: "checkout master", fileName: "master"}},
-		}
-
-		generator := &ScriptGenerator{
-			client:                 client,
-			alreadyHandledGroupIds: make(map[int]bool, 0),
-			writers:                commands,
-			ignores:                params.Ignores,
-		}
-
-		if err = generator.createFileWriter(params.Target); err != nil {
-			return
-		}
-
-		defer func() {
-			err = generator.close()
-		}()
-
-		if err = generator.generate(group); err != nil {
-			return
-		}
-
-		if err = generator.pause(); err != nil {
-			return
-		}
-
-		if err = generator.flush(); err != nil {
-			return
-		}
+	if err = generator.generate(groupNode); err != nil {
+		return
 	}
+
+	if err = generator.pause(); err != nil {
+		return
+	}
+
+	if err = generator.flush(); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -111,15 +78,15 @@ func (o *ScriptGenerator) close() (err error) {
 	return
 }
 
-func (o *ScriptGenerator) generateDir(group *gitlab.Group) (err error) {
-	if err = o.ensureDir(group); err != nil {
+func (o *ScriptGenerator) generateDir(groupNode *GroupNode) (err error) {
+	if err = o.ensureDir(groupNode.Group); err != nil {
 		return
 	}
-	if err = o.cd(group); err != nil {
+	if err = o.cd(groupNode.Group); err != nil {
 		return
 	}
 
-	if err = o.generate(group); err != nil {
+	if err = o.generate(groupNode); err != nil {
 		return
 	}
 
@@ -130,23 +97,19 @@ func (o *ScriptGenerator) generateDir(group *gitlab.Group) (err error) {
 	return
 }
 
-func (o *ScriptGenerator) generate(group *gitlab.Group) (err error) {
-	o.alreadyHandledGroupIds[group.ID] = true
+func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
 
-	if group.Projects == nil {
-		if group, _, err = o.client.Groups.GetGroup(group.ID); err != nil {
-			return
-		}
-	}
-
-	for _, project := range group.Projects {
+	for _, project := range groupNode.Group.Projects {
 		if err = o.command(project); err != nil {
 			return
 		}
-		err = o.handleSharedGroups(project)
 	}
-	err = o.handleSubGroups(group.ID)
+	for _, subGroup := range groupNode.Children {
+		if err = o.generateDir(subGroup); err != nil {
+			logrus.Warn(err)
+		}
 
+	}
 	return
 }
 
@@ -190,36 +153,6 @@ func (o *ScriptGenerator) pause() (err error) {
 	for _, writer := range o.writers {
 		if err = writer.pause(); err != nil {
 			return
-		}
-	}
-	return
-}
-
-func (o *ScriptGenerator) handleSubGroups(groupId int) (err error) {
-	var subGroups []*gitlab.Group
-	options := &gitlab.ListSubgroupsOptions{AllAvailable: new(bool)}
-	subGroups, _, err = o.client.Groups.ListSubgroups(groupId, options)
-	for _, subGroup := range subGroups {
-		if !o.alreadyHandledGroupIds[subGroup.ID] && !o.ignores[subGroup.Name] {
-			if err = o.generateDir(subGroup); err != nil {
-				logrus.Warn(err)
-			}
-		}
-	}
-	return err
-}
-
-func (o *ScriptGenerator) handleSharedGroups(project *gitlab.Project) (err error) {
-	var loadedGroup *gitlab.Group
-	for _, sharedGroup := range project.SharedWithGroups {
-		if !o.alreadyHandledGroupIds[sharedGroup.GroupID] && !o.ignores[sharedGroup.GroupName] {
-			if loadedGroup, _, err = o.client.Groups.GetGroup(sharedGroup.GroupID); err == nil {
-				if err = o.generateDir(loadedGroup); err != nil {
-					logrus.Warn(err)
-				}
-			} else {
-				logrus.Warn(err)
-			}
 		}
 	}
 	return
@@ -374,4 +307,17 @@ func (o *genericCommandWriter) echo(project *gitlab.Project) (err error) {
 	_, err = o.cmdWriter.WriteString(fmt.Sprintf("echo %v %v\r\n",
 		o.commandFileName.command, project.PathWithNamespace))
 	return
+}
+
+type commandWriter interface {
+	command(project *gitlab.Project) (err error)
+
+	ensureDir(group *gitlab.Group) (err error)
+	cd(group *gitlab.Group) (err error)
+	cdBack() (err error)
+	pause() (err error)
+
+	createFileWriter(target string) (err error)
+	flush() (err error)
+	close() (err error)
 }
