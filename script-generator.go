@@ -98,7 +98,7 @@ func (o *ScriptGenerator) generateDir(groupNode *GroupNode) (err error) {
 }
 
 func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
-
+	logrus.Debugf("handle group '%v'", groupNode.Group.Name)
 	for _, project := range groupNode.Group.Projects {
 		if err = o.command(project); err != nil {
 			return
@@ -141,6 +141,7 @@ func (o *ScriptGenerator) cdBack() (err error) {
 }
 
 func (o *ScriptGenerator) command(project *gitlab.Project) (err error) {
+	logrus.Debugf("handle project '%v'", project.Name)
 	for _, writer := range o.writers {
 		if err = writer.command(project); err != nil {
 			return

@@ -13,35 +13,48 @@ type ModelExtractor struct {
 
 func Extract(params *ExtractParams) (ret *GroupNode, err error) {
 	var client *gitlab.Client
-	if client, err = gitlab.NewClient(params.Token, gitlab.WithBaseURL(params.Url)); err != nil {
-		return
-	}
-
-	var group *gitlab.Group
-	if group, _, err = client.Groups.GetGroup(params.GroupName); err == nil {
-
+	if client, err = gitlab.NewClient(params.Token, gitlab.WithBaseURL(params.Url)); err == nil {
 		extractor := &ModelExtractor{
 			client:               client,
 			alreadyHandledGroups: make(map[int]bool, 0),
 			ignoreGroupNames:     params.IgnoreGroupNames,
 		}
+		ret, err = extractor.ExtractByGroupName(params.GroupName)
+	}
+	return
+}
 
-		ret, err = extractor.extract(group)
+func (o *ModelExtractor) ExtractByGroupName(groupName string) (ret *GroupNode, err error) {
+	var group *gitlab.Group
+	if group, _, err = o.client.Groups.GetGroup(groupName); err == nil {
+		ret, err = o.extract(group)
+	}
+	return
+}
+
+func (o *ModelExtractor) handleChildGroup(parent *GroupNode, groupId int, groupName string) (err error) {
+	if o.shallHandle(groupId, groupName) {
+		o.alreadyHandledGroups[groupId] = true
+
+		var group *gitlab.Group
+		if group, _, err = o.client.Groups.GetGroup(groupId); err != nil {
+			return
+		}
+		var groupNode *GroupNode
+		if groupNode, err = o.extract(group); err == nil {
+			parent.AddChild(groupNode)
+		}
 	}
 	return
 }
 
 func (o *ModelExtractor) extract(group *gitlab.Group) (ret *GroupNode, err error) {
+	logrus.Debugf("handle group '%v'", group.Name)
 	o.alreadyHandledGroups[group.ID] = true
+
 	ret = NewGroupNode(group)
 
-	// refresh projects
-	if group.Projects == nil {
-		if group, _, err = o.client.Groups.GetGroup(group.ID); err != nil {
-			return
-		}
-	}
-
+	logrus.Debugf("%v projects in %v", len(group.Projects), group.Name)
 	for _, project := range group.Projects {
 		o.handleSharedGroups(ret, project)
 	}
@@ -54,12 +67,8 @@ func (o *ModelExtractor) handleSubGroups(parent *GroupNode, groupId int) {
 	options := &gitlab.ListSubgroupsOptions{AllAvailable: new(bool)}
 	if subGroups, _, err := o.client.Groups.ListSubgroups(groupId, options); err == nil {
 		for _, subGroup := range subGroups {
-			if o.shallHandle(subGroup.ID, subGroup.Name) {
-				if group, err := o.extract(subGroup); err == nil {
-					parent.AddChild(group)
-				} else {
-					logrus.Warn(err)
-				}
+			if err := o.handleChildGroup(parent, subGroup.ID, subGroup.Name); err != nil {
+				logrus.Warn(err)
 			}
 		}
 	} else {
@@ -73,16 +82,10 @@ func (o *ModelExtractor) shallHandle(groupId int, groupName string) bool {
 }
 
 func (o *ModelExtractor) handleSharedGroups(parent *GroupNode, project *gitlab.Project) {
+	logrus.Debugf("handle group of project '%v'", project.Name)
 	for _, sharedGroup := range project.SharedWithGroups {
-		if o.shallHandle(sharedGroup.GroupID, sharedGroup.GroupName) {
-			if loadedGroup, _, err := o.client.Groups.GetGroup(sharedGroup.GroupID); err == nil {
-				if group, err := o.extract(loadedGroup); err != nil {
-					parent.AddChild(group)
-					logrus.Warn(err)
-				}
-			} else {
-				logrus.Warn(err)
-			}
+		if err := o.handleChildGroup(parent, sharedGroup.GroupID, sharedGroup.GroupName); err != nil {
+			logrus.Warn(err)
 		}
 	}
 	return
@@ -96,8 +99,8 @@ type ExtractParams struct {
 }
 
 type GroupNode struct {
-	Group    *gitlab.Group `json:group"`
-	Children []*GroupNode  `json:children"`
+	Group    *gitlab.Group `json:"group"`
+	Children []*GroupNode  `json:"children"`
 }
 
 func NewGroupNode(group *gitlab.Group) *GroupNode {
