@@ -1,4 +1,4 @@
-package gitlab
+package core
 
 import (
 	"github.com/sirupsen/logrus"
@@ -26,7 +26,7 @@ func Extract(params *ExtractParams) (ret *GroupNode, err error) {
 
 func (o *ModelExtractor) ExtractByGroupName(groupName string) (ret *GroupNode, err error) {
 	var group *gitlab.Group
-	if group, _, err = o.client.Groups.GetGroup(groupName); err == nil {
+	if group, _, err = o.client.Groups.GetGroup(groupName, nil); err == nil {
 		ret, err = o.extract(group)
 	}
 	return
@@ -37,7 +37,7 @@ func (o *ModelExtractor) handleChildGroup(parent *GroupNode, groupId int, groupN
 		o.alreadyHandledGroups[groupId] = true
 
 		var group *gitlab.Group
-		if group, _, err = o.client.Groups.GetGroup(groupId); err != nil {
+		if group, _, err = o.client.Groups.GetGroup(groupId, nil); err != nil {
 			return
 		}
 		var groupNode *GroupNode

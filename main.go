@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/go-ee/gitlab"
+	"github.com/go-ee/gitlab/core"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"io/ioutil"
@@ -93,7 +93,7 @@ func (o *Cli) init() {
 				}
 				logrus.Debugf("execute %v to %v", c.Command.Name, o.jsonFile)
 
-				var groupNode *gitlab.GroupNode
+				var groupNode *core.GroupNode
 				if groupNode, err = o.extract(); err == nil {
 					err = o.writeJsonFile(groupNode)
 				} else {
@@ -127,12 +127,12 @@ func (o *Cli) init() {
 
 				logrus.Debugf("execute %v to %v", c.Command.Name, o.scriptsDir)
 
-				var groupNode *gitlab.GroupNode
+				var groupNode *core.GroupNode
 				if groupNode, err = o.loadJsonFile(); err != nil {
 					return
 				}
 
-				err = gitlab.Generate(groupNode, o.scriptsDir, o.devBranch)
+				err = core.Generate(groupNode, o.scriptsDir, o.devBranch)
 
 				return
 			},
@@ -157,7 +157,7 @@ func (o *Cli) init() {
 				}
 				logrus.Debugf("execute %v to %v and %v", c.Command.Name, o.jsonFile, o.scriptsDir)
 
-				var groupNode *gitlab.GroupNode
+				var groupNode *core.GroupNode
 				if groupNode, err = o.extract(); err == nil {
 					if err = o.writeJsonFile(groupNode); err != nil {
 						return
@@ -166,7 +166,7 @@ func (o *Cli) init() {
 					logrus.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
 					return
 				}
-				err = gitlab.Generate(groupNode, o.scriptsDir, o.devBranch)
+				err = core.Generate(groupNode, o.scriptsDir, o.devBranch)
 
 				return
 			},
@@ -174,7 +174,7 @@ func (o *Cli) init() {
 	}
 }
 
-func (o *Cli) writeJsonFile(groupNode *gitlab.GroupNode) (err error) {
+func (o *Cli) writeJsonFile(groupNode *core.GroupNode) (err error) {
 	var data []byte
 	if data, err = json.MarshalIndent(groupNode, "", " "); err != nil {
 		return
@@ -183,10 +183,10 @@ func (o *Cli) writeJsonFile(groupNode *gitlab.GroupNode) (err error) {
 	return err
 }
 
-func (o *Cli) loadJsonFile() (ret *gitlab.GroupNode, err error) {
+func (o *Cli) loadJsonFile() (ret *core.GroupNode, err error) {
 	data, _ := ioutil.ReadFile(o.jsonFile)
 
-	groupNode := gitlab.GroupNode{}
+	groupNode := core.GroupNode{}
 	err = json.Unmarshal(data, &groupNode)
 	ret = &groupNode
 
@@ -207,11 +207,11 @@ func (o *Cli) prepareScriptsDir(c *cli.Context) (err error) {
 	return
 }
 
-func (o *Cli) extract() (ret *gitlab.GroupNode, err error) {
+func (o *Cli) extract() (ret *core.GroupNode, err error) {
 
 	o.buildIgnoresMap()
 
-	ret, err = gitlab.Extract(&gitlab.ExtractParams{
+	ret, err = core.Extract(&core.ExtractParams{
 		Url:              o.url,
 		Token:            o.token,
 		GroupName:        o.group,
