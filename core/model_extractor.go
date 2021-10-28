@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
+	"strconv"
 )
 
 type ModelExtractor struct {
@@ -12,7 +13,7 @@ type ModelExtractor struct {
 }
 
 type ExtractParams struct {
-	GroupName        string
+	Group            string
 	IgnoreGroupNames map[string]bool
 }
 
@@ -30,14 +31,21 @@ func Extract(params *ExtractParams, client GitlabLite) (ret *GroupNode, err erro
 		alreadyHandledGroups: make(map[int]bool, 0),
 		ignoreGroupNames:     params.IgnoreGroupNames,
 	}
-	ret, err = extractor.ExtractByGroupName(params.GroupName)
+	ret, err = extractor.ExtractByGroup(params.Group)
 	return
 }
 
-func (o *ModelExtractor) ExtractByGroupName(groupName string) (ret *GroupNode, err error) {
+func (o *ModelExtractor) ExtractByGroup(groupNameOrId string) (ret *GroupNode, err error) {
 	var group *gitlab.Group
-	if group, err = o.client.GetGroupByName(groupName); err == nil {
+	if group, err = o.client.GetGroupByName(groupNameOrId); err == nil {
 		ret, err = o.extract(group)
+	} else {
+		var groupId int
+		if groupId, err = strconv.Atoi(groupNameOrId); err == nil {
+			if group, err = o.client.GetGroup(groupId); err == nil {
+				ret, err = o.extract(group)
+			}
+		}
 	}
 	return
 }

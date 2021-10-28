@@ -34,7 +34,7 @@ func (o *ModelBase) prepareJsonFile(c *cli.Context) (err error) {
 
 func (o *ModelBase) extract(client core.GitlabLite) (ret *core.GroupNode, err error) {
 	ret, err = core.Extract(&core.ExtractParams{
-		GroupName:        o.group.CurrentValue,
+		Group:            o.group.CurrentValue,
 		IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 	}, client)
 	return
