@@ -36,7 +36,7 @@ func (o *GitlabLiteMem) GetGroup(groupId int) (ret *gitlab.Group, err error) {
 
 func (o *GitlabLiteMem) ListSubgroups(groupId int) (ret []*gitlab.Group, err error) {
 	if ret, _ = o.groupsChildren[groupId]; ret == nil {
-		err = fmt.Errorf("no sub-groups found, for id '%v'", groupId)
+		ret = []*gitlab.Group{}
 	}
 	return
 }
