@@ -45,7 +45,9 @@ func (o *ModelBase) writeJsonFile(groupNode *core.GroupNode) (err error) {
 	if data, err = json.MarshalIndent(groupNode, "", " "); err != nil {
 		return
 	}
-	err = ioutil.WriteFile(o.jsonFile.CurrentValue, data, 0644)
+	targetFile := o.jsonFile.CurrentValue
+	logrus.Infof("write gitlab model '%v(%v)' to '%v'", groupNode.Group.Name, groupNode.Group.ID, targetFile)
+	err = ioutil.WriteFile(targetFile, data, 0644)
 	return err
 }
 
