@@ -171,8 +171,8 @@ type commandFileName struct {
 }
 
 func (o *commandFileName) createFileWriter(target string) (err error) {
-	if o.shFile, err = os.Create(
-		fmt.Sprintf("%v/%v.sh", target, o.fileName)); err != nil {
+	if o.shFile, err = os.OpenFile(
+		fmt.Sprintf("%v/%v.sh", target, o.fileName), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777); err != nil {
 		return
 	}
 

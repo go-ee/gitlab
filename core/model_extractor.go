@@ -18,8 +18,8 @@ type ExtractParams struct {
 }
 
 func ExtractFromServer(params *ExtractParams, access *ServerAccess) (ret *GroupNode, err error) {
-	var gitlabLiteByServer *GitlabLiteByServer
-	if gitlabLiteByServer, err = NewGitlabLiteServer(access); err == nil {
+	var gitlabLiteByServer *GitlabLiteByAPI
+	if gitlabLiteByServer, err = NewGitlabLiteByAPI(access); err == nil {
 		ret, err = Extract(params, gitlabLiteByServer)
 	}
 	return
@@ -40,10 +40,12 @@ func (o *ModelExtractor) ExtractByGroup(groupNameOrId string) (ret *GroupNode, e
 	if group, err = o.client.GetGroupByName(groupNameOrId); err == nil {
 		ret, err = o.extract(group)
 	} else {
-		var groupId int
-		if groupId, err = strconv.Atoi(groupNameOrId); err == nil {
+		logrus.Errorf("can't find group by name: %v => %v", groupNameOrId, err)
+		if groupId, numErr := strconv.Atoi(groupNameOrId); numErr == nil {
 			if group, err = o.client.GetGroup(groupId); err == nil {
 				ret, err = o.extract(group)
+			} else {
+				logrus.Errorf("can't find group by ID: %v => %v", groupNameOrId, err)
 			}
 		}
 	}

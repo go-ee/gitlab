@@ -7,13 +7,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type ModelServer struct {
+type ModelGitLabAPI struct {
 	*ModelBase
 	token, url *cliu.StringFlag
 }
 
-func NewModelServer() (o *ModelServer) {
-	o = &ModelServer{
+func NewModelGitLabAPI() (o *ModelGitLabAPI) {
+	o = &ModelGitLabAPI{
 		ModelBase: NewModelBase(),
 		token:     NewTokenFlag(),
 		url:       NewUrlFlag(),
@@ -32,8 +32,8 @@ func NewModelServer() (o *ModelServer) {
 			}
 			logrus.Debugf("execute %v to %v", c.Command.Name, o.jsonFile)
 
-			var gitlabLite *core.GitlabLiteByServer
-			if gitlabLite, err = o.gitlabLiteByServer(); err == nil {
+			var gitlabLite *core.GitlabLiteByAPI
+			if gitlabLite, err = o.gitlabLiteByAPI(); err == nil {
 				var groupNode *core.GroupNode
 				if groupNode, err = o.extract(gitlabLite); err == nil {
 					err = o.writeJsonFile(groupNode)
@@ -47,7 +47,7 @@ func NewModelServer() (o *ModelServer) {
 	return
 }
 
-func (o *ModelServer) gitlabLiteByServer() (ret *core.GitlabLiteByServer, err error) {
-	ret, err = core.NewGitlabLiteServer(&core.ServerAccess{Url: o.url.CurrentValue, Token: o.token.CurrentValue})
+func (o *ModelGitLabAPI) gitlabLiteByAPI() (ret *core.GitlabLiteByAPI, err error) {
+	ret, err = core.NewGitlabLiteByAPI(&core.ServerAccess{Url: o.url.CurrentValue, Token: o.token.CurrentValue})
 	return
 }

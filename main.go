@@ -29,13 +29,10 @@ func NewCli() (ret *Cli) {
 
 func (o *Cli) init() {
 	o.App = cli.NewApp()
-	o.Usage = "Gitlab helper"
+	o.Usage = "Gitlab automation"
 	o.Version = "1.0"
 
-	o.debug = cliu.NewBoolFlag(&cli.BoolFlag{
-		Name:  "debug",
-		Usage: "Enable debug log level",
-	})
+	o.debug = cmd.NewDebugFlag()
 
 	o.Flags = []cli.Flag{
 		o.debug,
@@ -50,7 +47,8 @@ func (o *Cli) init() {
 	}
 
 	o.Commands = []*cli.Command{
-		cmd.NewModelServer().Command,
+		cmd.NewModelGitLabAPI().Command,
+		cmd.NewModelBrowser().Command,
 		cmd.NewModelJsonFiles().Command,
 		cmd.NewScripts().Command,
 	}

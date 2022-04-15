@@ -20,11 +20,27 @@ func NewTokenFlag() *cliu.StringFlag {
 	})
 }
 
+func NewApiUrlPart() *cliu.StringFlag {
+	return cliu.NewStringFlag(&cli.StringFlag{
+		Name:  "urlApiPart",
+		Usage: "URL API part",
+		Value: "api/v4",
+	})
+}
+
+func NewWaitForAuthInteractive() *cliu.IntFlag {
+	return cliu.NewIntFlag(&cli.IntFlag{
+		Name:  "waitForAuth",
+		Usage: "Wait duration for interactive authentication delay (in seconds)",
+		Value: 20000,
+	})
+}
+
 func NewUrlFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
 		Name:     "url",
 		Required: true,
-		Usage:    "Base Gitlab server url",
+		Usage:    "Gitlab server url",
 	})
 }
 
@@ -40,7 +56,7 @@ func NewGroupsFolderFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
 		Name:  "groups-folder",
 		Usage: "Folder of group JSON files",
-		Value: "gitlab",
+		Value: "__gitlab",
 	})
 }
 
@@ -62,8 +78,8 @@ func NewIgnoresFlag() *cliu.StringFlag {
 func NewDevBranchFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
 		Name:  "dev-branch",
-		Usage: "Ignore group names the comma separated groups",
-		Value: "develop",
+		Usage: "Development branch",
+		Value: "dev",
 	})
 }
 
