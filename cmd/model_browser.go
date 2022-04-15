@@ -13,15 +13,17 @@ type ModelBrowser struct {
 	*ModelBase
 	url, groupsFolder, urlApiPart *cliu.StringFlag
 	waitForAuth                   *cliu.IntFlag
+	installBrowsers               *cliu.BoolFlag
 }
 
 func NewModelBrowser() (o *ModelBrowser) {
 	o = &ModelBrowser{
-		ModelBase:    NewModelBase(),
-		url:          NewUrlFlag(),
-		groupsFolder: NewGroupsFolderFlag(),
-		urlApiPart:   NewApiUrlPart(),
-		waitForAuth:  NewWaitForAuthInteractive(),
+		ModelBase:       NewModelBase(),
+		url:             NewUrlFlag(),
+		groupsFolder:    NewGroupsFolderFlag(),
+		urlApiPart:      NewApiUrlPart(),
+		waitForAuth:     NewWaitForAuthInteractive(),
+		installBrowsers: NewInstallBrowsers(),
 	}
 
 	o.Command = &cli.Command{
@@ -57,10 +59,14 @@ func NewModelBrowser() (o *ModelBrowser) {
 
 func (o *ModelBrowser) gitlabLiteByBrowser() (ret *core.GitlabLiteByBrowser, err error) {
 	if err = os.MkdirAll(o.groupsFolder.CurrentValue, 0755); err == nil {
-		ret, err = core.NewGitlabLiteByBrowser(&core.BrowserAccess{
-			UrlAuth:         o.url.CurrentValue,
-			UrlApi:          fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue),
-			FolderGroupJson: o.groupsFolder.CurrentValue})
+		ret, err = core.NewGitlabLiteByBrowser(o.buildBrowserAccess(), o.installBrowsers.CurrentValue)
 	}
 	return
+}
+
+func (o *ModelBrowser) buildBrowserAccess() *core.BrowserAccess {
+	return &core.BrowserAccess{
+		UrlAuth:         o.url.CurrentValue,
+		UrlApi:          fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue),
+		FolderGroupJson: o.groupsFolder.CurrentValue}
 }

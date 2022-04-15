@@ -36,6 +36,14 @@ func NewWaitForAuthInteractive() *cliu.IntFlag {
 	})
 }
 
+func NewInstallBrowsers() *cliu.BoolFlag {
+	return cliu.NewBoolFlag(&cli.BoolFlag{
+		Name:  "installEmbeddedBrowsers",
+		Usage: "Install compatible embedded browsers",
+		Value: false,
+	})
+}
+
 func NewUrlFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
 		Name:     "url",

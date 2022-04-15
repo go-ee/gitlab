@@ -18,18 +18,31 @@ type GitlabLiteByBrowser struct {
 	page    playwright.Page
 }
 
-func NewGitlabLiteByBrowser(access *BrowserAccess) (ret *GitlabLiteByBrowser, err error) {
+func NewGitlabLiteByBrowser(access *BrowserAccess, installBrowsers bool) (ret *GitlabLiteByBrowser, err error) {
+	ret = &GitlabLiteByBrowser{access: access}
+	err = ret.Init(installBrowsers)
+	return
+}
+
+func (o *GitlabLiteByBrowser) InstallBrowsers() (err error) {
+	err = playwright.Install()
+	return
+}
+
+func (o *GitlabLiteByBrowser) Init(installBrowsers bool) (err error) {
+	if installBrowsers {
+		if err = playwright.Install(); err != nil {
+			return
+		}
+	}
+
 	var pw *playwright.Playwright
 	if pw, err = playwright.Run(); err != nil {
 		return
 	}
 
-	var browser playwright.Browser
-	if browser, err = pw.Chromium.Launch(
-		playwright.BrowserTypeLaunchOptions{Headless: playwright.Bool(false)}); err != nil {
-		return
-	}
-	ret = &GitlabLiteByBrowser{access: access, browser: browser}
+	o.browser, err = pw.Chromium.Launch(
+		playwright.BrowserTypeLaunchOptions{Headless: playwright.Bool(false)})
 	return
 }
 
