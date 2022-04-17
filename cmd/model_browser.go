@@ -30,7 +30,7 @@ func NewModelBrowser() (o *ModelBrowser) {
 		Name:  "model-browser",
 		Usage: "Build group model by browser automation to a JSON file",
 		Flags: []cli.Flag{
-			o.url, o.group, o.ignores, o.waitForAuth, o.jsonFile, o.groupsFolder, o.urlApiPart,
+			o.url, o.group, o.ignores, o.waitForAuth, o.jsonFile, o.groupsFolder, o.urlApiPart, o.installBrowsers,
 		},
 		Action: func(c *cli.Context) (err error) {
 			if err = o.prepareJsonFile(c); err != nil {
