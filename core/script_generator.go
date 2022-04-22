@@ -185,11 +185,13 @@ func (o *commandFileName) createFileWriter(target string) (err error) {
 	o.cmdWriter = bufio.NewWriter(o.cmdFile)
 
 	_, err = o.shWriter.WriteString("#!/bin/bash\n")
+	_, err = o.shWriter.WriteString("# This file is generated, do not update manually\n\n")
 
 	//change to directory of the script
 	_, err = o.shWriter.WriteString("DIR=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" >/dev/null 2>&1 && pwd )\"\n")
 	_, err = o.shWriter.WriteString("pushd \"$DIR\"\n")
 
+	_, err = o.cmdWriter.WriteString("REM This file is generated, do not update manually\n\n")
 	_, err = o.cmdWriter.WriteString("pushd \"%~dp0\"\r\n")
 
 	return
