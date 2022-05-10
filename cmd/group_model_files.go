@@ -7,20 +7,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type ModelJsonFiles struct {
-	*ModelBase
+type GroupModelJsonFiles struct {
+	*GroupModelBase
 	groupsFolder, filePattern *cliu.StringFlag
 }
 
-func NewModelJsonFiles() (o *ModelJsonFiles) {
-	o = &ModelJsonFiles{
-		ModelBase:    NewModelBase(),
-		groupsFolder: NewGroupsFolderFlag(),
-		filePattern:  NewFilePatternFlag(),
+func NewGroupModelByJsonFiles() (o *GroupModelJsonFiles) {
+	o = &GroupModelJsonFiles{
+		GroupModelBase: NewGroupModelBase(),
+		groupsFolder:   NewGroupsFolderFlag(),
+		filePattern:    NewFilePatternFlag(),
 	}
 
 	o.Command = &cli.Command{
-		Name:  "model-files",
+		Name:  "group-model-files",
 		Usage: "Build group model from Gitlab group JSON files",
 		Flags: []cli.Flag{
 			o.groupsFolder, o.filePattern,

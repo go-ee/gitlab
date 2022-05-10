@@ -9,16 +9,16 @@ import (
 	"os"
 )
 
-type ModelBrowser struct {
-	*ModelBase
+type GroupModelBrowser struct {
+	*GroupModelBase
 	url, groupsFolder, urlApiPart *cliu.StringFlag
 	waitForAuth                   *cliu.IntFlag
 	installBrowsers               *cliu.BoolFlag
 }
 
-func NewModelBrowser() (o *ModelBrowser) {
-	o = &ModelBrowser{
-		ModelBase:       NewModelBase(),
+func NewGroupModelByBrowser() (o *GroupModelBrowser) {
+	o = &GroupModelBrowser{
+		GroupModelBase:  NewGroupModelBase(),
 		url:             NewUrlFlag(),
 		groupsFolder:    NewGroupsFolderFlag(),
 		urlApiPart:      NewApiUrlPart(),
@@ -27,7 +27,7 @@ func NewModelBrowser() (o *ModelBrowser) {
 	}
 
 	o.Command = &cli.Command{
-		Name:  "model-browser",
+		Name:  "group-model-browser",
 		Usage: "Build group model by browser automation to a JSON file",
 		Flags: []cli.Flag{
 			o.url, o.group, o.ignores, o.waitForAuth, o.jsonFile, o.groupsFolder, o.urlApiPart, o.installBrowsers,
@@ -57,16 +57,16 @@ func NewModelBrowser() (o *ModelBrowser) {
 	return
 }
 
-func (o *ModelBrowser) gitlabLiteByBrowser() (ret *core.GitlabLiteByBrowser, err error) {
+func (o *GroupModelBrowser) gitlabLiteByBrowser() (ret *core.GitlabLiteByBrowser, err error) {
 	if err = os.MkdirAll(o.groupsFolder.CurrentValue, 0755); err == nil {
 		ret, err = core.NewGitlabLiteByBrowser(o.buildBrowserAccess(), o.installBrowsers.CurrentValue)
 	}
 	return
 }
 
-func (o *ModelBrowser) buildBrowserAccess() *core.BrowserAccess {
+func (o *GroupModelBrowser) buildBrowserAccess() *core.BrowserAccess {
 	return &core.BrowserAccess{
-		UrlAuth:         o.url.CurrentValue,
-		UrlApi:          fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue),
-		FolderGroupJson: o.groupsFolder.CurrentValue}
+		UrlAuth:      o.url.CurrentValue,
+		UrlApi:       fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue),
+		GroupsFolder: o.groupsFolder.CurrentValue}
 }

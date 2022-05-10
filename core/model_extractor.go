@@ -17,14 +17,6 @@ type ExtractParams struct {
 	IgnoreGroupNames map[string]bool
 }
 
-func ExtractFromServer(params *ExtractParams, access *ServerAccess) (ret *GroupNode, err error) {
-	var gitlabLiteByServer *GitlabLiteByAPI
-	if gitlabLiteByServer, err = NewGitlabLiteByAPI(access); err == nil {
-		ret, err = Extract(params, gitlabLiteByServer)
-	}
-	return
-}
-
 func Extract(params *ExtractParams, client GitlabLite) (ret *GroupNode, err error) {
 	extractor := &ModelExtractor{
 		client:               client,

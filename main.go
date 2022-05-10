@@ -47,9 +47,10 @@ func (o *Cli) init() {
 	}
 
 	o.Commands = []*cli.Command{
-		cmd.NewModelGitLabAPI().Command,
-		cmd.NewModelBrowser().Command,
-		cmd.NewModelJsonFiles().Command,
+		cmd.NewGroupsDownloaderByBrowser().Command,
+		cmd.NewGroupModelByJsonFiles().Command,
+		cmd.NewGroupModelByGitLabAPI().Command,
+		cmd.NewGroupModelByBrowser().Command,
 		cmd.NewScripts().Command,
 	}
 }

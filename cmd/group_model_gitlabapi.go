@@ -7,20 +7,20 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type ModelGitLabAPI struct {
-	*ModelBase
+type GroupModelGitLabAPI struct {
+	*GroupModelBase
 	token, url *cliu.StringFlag
 }
 
-func NewModelGitLabAPI() (o *ModelGitLabAPI) {
-	o = &ModelGitLabAPI{
-		ModelBase: NewModelBase(),
-		token:     NewTokenFlag(),
-		url:       NewUrlFlag(),
+func NewGroupModelByGitLabAPI() (o *GroupModelGitLabAPI) {
+	o = &GroupModelGitLabAPI{
+		GroupModelBase: NewGroupModelBase(),
+		token:          NewTokenFlag(),
+		url:            NewUrlFlag(),
 	}
 
 	o.Command = &cli.Command{
-		Name:  "model",
+		Name:  "group-model",
 		Usage: "Build group model from over Gitlab API to a JSON file",
 		Flags: []cli.Flag{
 			o.token, o.url,
@@ -47,7 +47,7 @@ func NewModelGitLabAPI() (o *ModelGitLabAPI) {
 	return
 }
 
-func (o *ModelGitLabAPI) gitlabLiteByAPI() (ret *core.GitlabLiteByAPI, err error) {
+func (o *GroupModelGitLabAPI) gitlabLiteByAPI() (ret *core.GitlabLiteByAPI, err error) {
 	ret, err = core.NewGitlabLiteByAPI(&core.ServerAccess{Url: o.url.CurrentValue, Token: o.token.CurrentValue})
 	return
 }

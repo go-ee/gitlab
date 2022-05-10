@@ -60,6 +60,14 @@ func NewGroupFlag() *cliu.StringFlag {
 	})
 }
 
+func NewGroupsFlag() *cliu.StringFlag {
+	return cliu.NewStringFlag(&cli.StringFlag{
+		Name:     "groups",
+		Usage:    "Gitlab groups (comma separated)",
+		Required: true,
+	})
+}
+
 func NewGroupsFolderFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
 		Name:  "groups-folder",

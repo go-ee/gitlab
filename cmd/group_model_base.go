@@ -11,13 +11,13 @@ import (
 	"strings"
 )
 
-type ModelBase struct {
+type GroupModelBase struct {
 	*cli.Command
 	group, ignores, jsonFile *cliu.StringFlag
 }
 
-func NewModelBase() (o *ModelBase) {
-	o = &ModelBase{
+func NewGroupModelBase() (o *GroupModelBase) {
+	o = &GroupModelBase{
 		group:    NewGroupFlag(),
 		ignores:  NewIgnoresFlag(),
 		jsonFile: NewJsonFileFlag(),
@@ -25,14 +25,14 @@ func NewModelBase() (o *ModelBase) {
 	return
 }
 
-func (o *ModelBase) prepareJsonFile(c *cli.Context) (err error) {
+func (o *GroupModelBase) prepareJsonFile(c *cli.Context) (err error) {
 	if o.jsonFile.CurrentValue, err = filepath.Abs(o.jsonFile.CurrentValue); err != nil {
 		logrus.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
 	}
 	return
 }
 
-func (o *ModelBase) extract(client core.GitlabLite) (ret *core.GroupNode, err error) {
+func (o *GroupModelBase) extract(client core.GitlabLite) (ret *core.GroupNode, err error) {
 	ret, err = core.Extract(&core.ExtractParams{
 		Group:            o.group.CurrentValue,
 		IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
@@ -40,7 +40,7 @@ func (o *ModelBase) extract(client core.GitlabLite) (ret *core.GroupNode, err er
 	return
 }
 
-func (o *ModelBase) writeJsonFile(groupNode *core.GroupNode) (err error) {
+func (o *GroupModelBase) writeJsonFile(groupNode *core.GroupNode) (err error) {
 	var data []byte
 	if data, err = json.MarshalIndent(groupNode, "", " "); err != nil {
 		return

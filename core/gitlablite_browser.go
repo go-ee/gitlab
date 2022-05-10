@@ -65,14 +65,16 @@ func (o *GitlabLiteByBrowser) AuthInteractive(waitForAuth int) (err error) {
 }
 
 func (o *GitlabLiteByBrowser) GetGroupByName(groupName string) (*gitlab.Group, error) {
-	return o.getGroupByNameOrId(pathEscape(groupName))
+	return o.getGroupByNameOrIdAlsoWriteGroupJsonFile(pathEscape(groupName))
 }
 
 func (o *GitlabLiteByBrowser) GetGroup(groupId int) (ret *gitlab.Group, err error) {
-	return o.getGroupByNameOrId(groupId)
+	return o.getGroupByNameOrIdAlsoWriteGroupJsonFile(groupId)
 }
 
-func (o *GitlabLiteByBrowser) getGroupByNameOrId(groupNameOrId interface{}) (ret *gitlab.Group, err error) {
+func (o *GitlabLiteByBrowser) getGroupByNameOrIdAlsoWriteGroupJsonFile(
+	groupNameOrId interface{}) (ret *gitlab.Group, err error) {
+
 	var resp playwright.Response
 	if resp, err = o.page.Goto(o.access.GroupUrl(groupNameOrId)); err != nil {
 		return
@@ -105,9 +107,9 @@ func pathEscape(s string) string {
 }
 
 type BrowserAccess struct {
-	UrlAuth         string
-	UrlApi          string
-	FolderGroupJson string
+	UrlAuth      string
+	UrlApi       string
+	GroupsFolder string
 }
 
 func (o *BrowserAccess) GroupsUrl() string {
@@ -123,5 +125,5 @@ func (o *BrowserAccess) SubGroupsUrl(groupNameOrId interface{}) string {
 }
 
 func (o *BrowserAccess) JsonFilePath(groupNameOrId interface{}) string {
-	return fmt.Sprintf("%v/%v.json", o.FolderGroupJson, groupNameOrId)
+	return fmt.Sprintf("%v/%v.json", o.GroupsFolder, groupNameOrId)
 }
