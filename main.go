@@ -47,6 +47,7 @@ func (o *Cli) init() {
 	}
 
 	o.Commands = []*cli.Command{
+		cmd.NewGroupsDownloaderByAPI().Command,
 		cmd.NewGroupsDownloaderByBrowser().Command,
 		cmd.NewGroupModelByJsonFiles().Command,
 		cmd.NewGroupModelByGitLabAPI().Command,

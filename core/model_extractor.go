@@ -61,7 +61,7 @@ func (o *ModelExtractor) handleChildGroup(parent *GroupNode, groupId int, groupN
 }
 
 func (o *ModelExtractor) extract(group *gitlab.Group) (ret *GroupNode, err error) {
-	logrus.Debugf("handle group '%v'", group.Name)
+	logrus.Infof("extract group '%v(%v)'", group.Name, group.ID)
 	o.alreadyHandledGroups[group.ID] = true
 
 	ret = NewGroupNode(group)
