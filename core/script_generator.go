@@ -13,7 +13,7 @@ type ScriptGenerator struct {
 	devBranch string
 }
 
-func Generate(groupNode *GroupNode, targetDir string, devBranch string) (err error) {
+func Generate(groupNode *GroupNode, scriptsDir string, reposDir string, devBranch string) (err error) {
 
 	commands := []commandWriter{
 		&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
@@ -28,7 +28,7 @@ func Generate(groupNode *GroupNode, targetDir string, devBranch string) (err err
 		devBranch: devBranch,
 	}
 
-	if err = generator.createFileWriter(targetDir); err != nil {
+	if err = generator.createFileWriter(scriptsDir, reposDir); err != nil {
 		return
 	}
 
@@ -51,9 +51,9 @@ func Generate(groupNode *GroupNode, targetDir string, devBranch string) (err err
 	return
 }
 
-func (o *ScriptGenerator) createFileWriter(target string) (err error) {
+func (o *ScriptGenerator) createFileWriter(scriptsDir string, reposDir string) (err error) {
 	for _, writer := range o.writers {
-		if err = writer.createFileWriter(target); err != nil {
+		if err = writer.createFileWriter(scriptsDir, reposDir); err != nil {
 			return
 		}
 	}
@@ -160,6 +160,9 @@ func (o *ScriptGenerator) pause() (err error) {
 }
 
 type commandFileName struct {
+	scriptsDir string
+	reposDir   string
+
 	command  string
 	fileName string
 
@@ -170,49 +173,57 @@ type commandFileName struct {
 	cmdWriter *bufio.Writer
 }
 
-func (o *commandFileName) createFileWriter(target string) (err error) {
+func (o *commandFileName) createFileWriter(scriptsDir string, reposDir string) (err error) {
+	o.scriptsDir = scriptsDir
+	o.reposDir = reposDir
+
 	if o.shFile, err = os.OpenFile(
-		fmt.Sprintf("%v/%v.sh", target, o.fileName), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777); err != nil {
+		fmt.Sprintf("%v/%v.sh", scriptsDir, o.fileName), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777); err != nil {
 		return
 	}
 
 	if o.cmdFile, err = os.Create(
-		fmt.Sprintf("%v/%v.cmd", target, o.fileName)); err != nil {
+		fmt.Sprintf("%v/%v.cmd", scriptsDir, o.fileName)); err != nil {
 		return
 	}
 
 	o.shWriter = bufio.NewWriter(o.shFile)
 	o.cmdWriter = bufio.NewWriter(o.cmdFile)
 
-	_, err = o.shWriter.WriteString("#!/bin/bash\n")
-	_, err = o.shWriter.WriteString("# This file is generated, do not update manually\n\n")
+	_, _ = o.shWriter.WriteString("#!/bin/bash\n")
+	_, _ = o.shWriter.WriteString("# This file is generated, do not update manually\n\n")
 
 	//change to directory of the script
-	_, err = o.shWriter.WriteString("DIR=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" >/dev/null 2>&1 && pwd )\"\n")
-	_, err = o.shWriter.WriteString("pushd \"$DIR\"\n")
+	_, _ = o.shWriter.WriteString("DIR=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" >/dev/null 2>&1 && pwd )\"\n")
+	_, _ = o.shWriter.WriteString("pushd \"$DIR\"\n")
 
-	_, err = o.cmdWriter.WriteString("REM This file is generated, do not update manually\n\n")
-	_, err = o.cmdWriter.WriteString("pushd \"%~dp0\"\r\n")
+	_, _ = o.cmdWriter.WriteString("REM This file is generated, do not update manually\n\n")
+	_, _ = o.cmdWriter.WriteString("pushd \"%~dp0\"\r\n")
+
+	if reposDir != "" {
+		_, _ = o.shWriter.WriteString("mkdir \"" + reposDir + "\"\n")
+		_, _ = o.shWriter.WriteString(fmt.Sprintf("pushd \"%v\"\n", reposDir))
+
+		_, _ = o.cmdWriter.WriteString("REM This file is generated, do not update manually\n\n")
+		_, _ = o.cmdWriter.WriteString(fmt.Sprintf("pushd \"%v\"\n", reposDir))
+	}
 
 	return
 }
 
 func (o *commandFileName) flush() (err error) {
-	if _, err = o.shWriter.WriteString("popd\n"); err != nil {
-		return
+	_, _ = o.shWriter.WriteString("popd\n")
+	if o.reposDir != "" {
+		_, _ = o.shWriter.WriteString("popd\n")
 	}
+	_ = o.shWriter.Flush()
 
-	if err = o.shWriter.Flush(); err != nil {
-		return
+	_, _ = o.cmdWriter.WriteString("popd\r\n")
+	if o.reposDir != "" {
+		_, _ = o.cmdWriter.WriteString("popd\n")
 	}
+	_ = o.cmdWriter.Flush()
 
-	if _, err = o.cmdWriter.WriteString("popd\r\n"); err != nil {
-		return
-	}
-
-	if err = o.cmdWriter.Flush(); err != nil {
-		return
-	}
 	return
 }
 
@@ -296,7 +307,7 @@ func (o *genericCommandWriter) command(project *gitlab.Project) (err error) {
 	return
 }
 
-func (o *genericCommandWriter) ensureDir(group *gitlab.Group) (err error) {
+func (o *genericCommandWriter) ensureDir(_ *gitlab.Group) (err error) {
 	_, err = o.shWriter.WriteString(fmt.Sprintf("\n"))
 	_, err = o.cmdWriter.WriteString(fmt.Sprintf("\r\n"))
 	return
@@ -320,7 +331,7 @@ type commandWriter interface {
 	cdBack() (err error)
 	pause() (err error)
 
-	createFileWriter(target string) (err error)
+	createFileWriter(scriptsDir string, reposDir string) (err error)
 	flush() (err error)
 	close() (err error)
 }

@@ -107,6 +107,14 @@ func NewsScriptsFolderFlag() *cliu.StringFlag {
 	})
 }
 
+func NewsReposFolderFlag() *cliu.StringFlag {
+	return cliu.NewStringFlag(&cli.StringFlag{
+		Name:  "repos-folder",
+		Usage: "Folder where repositories will be cloned and pulled",
+		Value: "src",
+	})
+}
+
 func NewJsonFileFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
 		Name:  "json-file",

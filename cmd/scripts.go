@@ -12,13 +12,14 @@ import (
 
 type Scripts struct {
 	*cli.Command
-	jsonFile, scriptsFolder, devBranch *cliu.StringFlag
+	jsonFile, scriptsFolder, reposFolder, devBranch *cliu.StringFlag
 }
 
 func NewScripts() (o *Scripts) {
 	o = &Scripts{
 		jsonFile:      NewJsonFileFlag(),
 		scriptsFolder: NewsScriptsFolderFlag(),
+		reposFolder:   NewsReposFolderFlag(),
 		devBranch:     NewDevBranchFlag(),
 	}
 
@@ -41,7 +42,8 @@ func NewScripts() (o *Scripts) {
 				return
 			}
 
-			err = core.Generate(groupNode, o.scriptsFolder.CurrentValue, o.devBranch.CurrentValue)
+			err = core.Generate(
+				groupNode, o.scriptsFolder.CurrentValue, o.reposFolder.CurrentValue, o.devBranch.CurrentValue)
 
 			return
 		},
