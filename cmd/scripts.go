@@ -27,7 +27,7 @@ func NewScripts() (o *Scripts) {
 		Name:  "scripts",
 		Usage: "Generate scripts for clone, pull.. and structure creation for all projects of a group recursively",
 		Flags: []cli.Flag{
-			o.jsonFile, o.scriptsFolder,
+			o.jsonFile, o.scriptsFolder, o.reposFolder,
 		},
 		Action: func(c *cli.Context) (err error) {
 			if o.scriptsFolder.CurrentValue, err = filepath.Abs(o.scriptsFolder.CurrentValue); err != nil {
