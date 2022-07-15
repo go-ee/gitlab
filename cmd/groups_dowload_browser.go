@@ -41,15 +41,19 @@ func NewGroupsDownloaderByBrowser() (o *GroupsDownloaderByBrowser) {
 			if gitlabLite, err = o.gitlabLiteByBrowser(); err != nil {
 				return
 			}
-
+			modelWriter := &core.ModelWriter{GroupsFolder: o.groupsFolder.CurrentValue}
 			if err = gitlabLite.AuthInteractive(o.waitForAuth.CurrentValue); err == nil {
 				groups := strings.Split(o.groups.CurrentValue, ",")
 				for _, group := range groups {
-					if _, groupErr := core.Extract(&core.ExtractParams{
+					if groupNode, groupErr := core.Extract(&core.ExtractParams{
 						Group:            group,
 						IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 					}, gitlabLite); groupErr != nil {
 						logrus.Warnf("error at downloading of JSON for group %v", group)
+					} else {
+						if groupWriter := modelWriter.OnGroupNode(groupNode); groupWriter != nil {
+							logrus.Warnf("error at writing of JSON for group %v", group)
+						}
 					}
 				}
 			}
@@ -68,7 +72,6 @@ func (o *GroupsDownloaderByBrowser) gitlabLiteByBrowser() (ret *core.GitlabLiteB
 
 func (o *GroupsDownloaderByBrowser) buildBrowserAccess() *core.BrowserAccess {
 	return &core.BrowserAccess{
-		UrlAuth:      o.url.CurrentValue,
-		UrlApi:       fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue),
-		GroupsFolder: o.groupsFolder.CurrentValue}
+		UrlAuth: o.url.CurrentValue,
+		UrlApi:  fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue)}
 }

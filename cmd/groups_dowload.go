@@ -34,13 +34,18 @@ func NewGroupsDownloaderByAPI() (o *GroupsDownloaderByAPI) {
 				return
 			}
 
+			modelWriter := &core.ModelWriter{GroupsFolder: o.groupsFolder.CurrentValue}
 			groups := strings.Split(o.groups.CurrentValue, ",")
 			for _, group := range groups {
-				if _, groupErr := core.Extract(&core.ExtractParams{
+				if groupNode, groupErr := core.Extract(&core.ExtractParams{
 					Group:            group,
 					IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 				}, gitlabLite); groupErr != nil {
 					logrus.Warnf("error at downloading of JSON for group %v", group)
+				} else {
+					if groupWriter := modelWriter.OnGroupNode(groupNode); groupWriter != nil {
+						logrus.Warnf("error at writing of JSON for group %v", group)
+					}
 				}
 			}
 			return

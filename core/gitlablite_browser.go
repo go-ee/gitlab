@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
 	"net/url"
-	"os"
 	"strings"
 )
 
@@ -65,14 +64,14 @@ func (o *GitlabLiteByBrowser) AuthInteractive(waitForAuth int) (err error) {
 }
 
 func (o *GitlabLiteByBrowser) GetGroupByName(groupName string) (*gitlab.Group, error) {
-	return o.getGroupByNameOrIdAlsoWriteGroupJsonFile(pathEscape(groupName))
+	return o.getGroupByNameOrId(pathEscape(groupName))
 }
 
 func (o *GitlabLiteByBrowser) GetGroup(groupId int) (ret *gitlab.Group, err error) {
-	return o.getGroupByNameOrIdAlsoWriteGroupJsonFile(groupId)
+	return o.getGroupByNameOrId(groupId)
 }
 
-func (o *GitlabLiteByBrowser) getGroupByNameOrIdAlsoWriteGroupJsonFile(
+func (o *GitlabLiteByBrowser) getGroupByNameOrId(
 	groupNameOrId interface{}) (ret *gitlab.Group, err error) {
 
 	var resp playwright.Response
@@ -82,9 +81,7 @@ func (o *GitlabLiteByBrowser) getGroupByNameOrIdAlsoWriteGroupJsonFile(
 
 	var jsonResponse []byte
 	if jsonResponse, err = resp.Body(); err == nil {
-		if err = json.Unmarshal(jsonResponse, &ret); err == nil {
-			err = os.WriteFile(o.access.JsonFilePath(ret.ID), jsonResponse, 0644)
-		}
+		err = json.Unmarshal(jsonResponse, &ret)
 	}
 	return
 }
@@ -107,9 +104,8 @@ func pathEscape(s string) string {
 }
 
 type BrowserAccess struct {
-	UrlAuth      string
-	UrlApi       string
-	GroupsFolder string
+	UrlAuth string
+	UrlApi  string
 }
 
 func (o *BrowserAccess) GroupsUrl() string {
@@ -122,8 +118,4 @@ func (o *BrowserAccess) GroupUrl(groupNameOrId interface{}) string {
 
 func (o *BrowserAccess) SubGroupsUrl(groupNameOrId interface{}) string {
 	return fmt.Sprintf("%v/groups/%v/subgroups", o.UrlApi, groupNameOrId)
-}
-
-func (o *BrowserAccess) JsonFilePath(groupNameOrId interface{}) string {
-	return fmt.Sprintf("%v/%v.json", o.GroupsFolder, groupNameOrId)
 }

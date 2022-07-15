@@ -66,7 +66,6 @@ func (o *GroupModelBrowser) gitlabLiteByBrowser() (ret *core.GitlabLiteByBrowser
 
 func (o *GroupModelBrowser) buildBrowserAccess() *core.BrowserAccess {
 	return &core.BrowserAccess{
-		UrlAuth:      o.url.CurrentValue,
-		UrlApi:       fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue),
-		GroupsFolder: o.groupsFolder.CurrentValue}
+		UrlAuth: o.url.CurrentValue,
+		UrlApi:  fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue)}
 }

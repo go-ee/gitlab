@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
 	"io/ioutil"
@@ -77,4 +78,34 @@ func (o *FileLoaderJson) matchFileName(file string) (ret bool) {
 		logrus.Infof("ignore file '%v'", file)
 	}
 	return ret
+}
+
+type ModelWriter struct {
+	GroupsFolder string
+}
+
+func (o *ModelWriter) jsonFilePath(groupNameOrId interface{}) string {
+	return fmt.Sprintf("%v/%v.json", o.GroupsFolder, groupNameOrId)
+}
+
+func (o *ModelWriter) OnGroup(group *gitlab.Group) (err error) {
+	var data []byte
+	if data, err = json.Marshal(group); err == nil {
+		jsonFilePath := o.jsonFilePath(group.ID)
+		logrus.Infof("write gitlab group '%v' to '%v'", group.Name, jsonFilePath)
+		err = os.WriteFile(jsonFilePath, data, 0644)
+	}
+	return
+}
+
+func (o *ModelWriter) OnGroupNode(groupNode *GroupNode) (err error) {
+	if err = o.OnGroup(groupNode.Group); err != nil {
+		return
+	}
+	for _, subGroupNode := range groupNode.Children {
+		if err = o.OnGroupNode(subGroupNode); err != nil {
+			break
+		}
+	}
+	return
 }
