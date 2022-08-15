@@ -14,7 +14,8 @@ type ScriptGenerator struct {
 }
 
 func Generate(groupNode *GroupNode, scriptsDir string, reposDir string, devBranch string) (err error) {
-
+	logrus.Infof("generate scripts for group '%v', scripts folder '%v', repos folder '%v', devBranch '%v'",
+		groupNode.Group.Name, scriptsDir, reposDir, devBranch)
 	commands := []commandWriter{
 		&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
 		&genericCommandWriter{&commandFileName{command: "pull", fileName: "pull"}},

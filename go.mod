@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/go-ee/utils v0.0.0-20201104184309-5b62a7627986
+	github.com/playwright-community/playwright-go v0.2000.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/xanzy/go-gitlab v0.51.1
@@ -17,7 +18,6 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
-	github.com/playwright-community/playwright-go v0.2000.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	golang.org/x/net v0.0.0-20211005215030-d2e5035098b3 // indirect
 	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1 // indirect
