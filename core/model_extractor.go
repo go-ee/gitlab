@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/xanzy/go-gitlab"
 	"strconv"
 )
@@ -32,12 +32,12 @@ func (o *ModelExtractor) ExtractByGroup(groupNameOrId string) (ret *GroupNode, e
 	if group, err = o.client.GetGroupByName(groupNameOrId); err == nil {
 		ret, err = o.extract(group)
 	} else {
-		logrus.Errorf("can't find group by name: %v => %v", groupNameOrId, err)
+		lg.LOG.Errorf("can't find group by name: %v => %v", groupNameOrId, err)
 		if groupId, numErr := strconv.Atoi(groupNameOrId); numErr == nil {
 			if group, err = o.client.GetGroup(groupId); err == nil {
 				ret, err = o.extract(group)
 			} else {
-				logrus.Errorf("can't find group by ID: %v => %v", groupNameOrId, err)
+				lg.LOG.Errorf("can't find group by ID: %v => %v", groupNameOrId, err)
 			}
 		}
 	}
@@ -61,12 +61,12 @@ func (o *ModelExtractor) handleChildGroup(parent *GroupNode, groupId int, groupN
 }
 
 func (o *ModelExtractor) extract(group *gitlab.Group) (ret *GroupNode, err error) {
-	logrus.Infof("extract group '%v(%v)'", group.Name, group.ID)
+	lg.LOG.Infof("extract group '%v(%v)'", group.Name, group.ID)
 	o.alreadyHandledGroups[group.ID] = true
 
 	ret = NewGroupNode(group)
 
-	logrus.Debugf("%v projects in %v", len(group.Projects), group.Name)
+	lg.LOG.Debugf("%v projects in %v", len(group.Projects), group.Name)
 	for _, project := range group.Projects {
 		o.handleSharedGroups(ret, project)
 	}
@@ -79,11 +79,11 @@ func (o *ModelExtractor) handleSubGroups(parent *GroupNode, groupId int) {
 	if subGroups, err := o.client.ListSubgroups(groupId); err == nil {
 		for _, subGroup := range subGroups {
 			if err := o.handleChildGroup(parent, subGroup.ID, subGroup.Name); err != nil {
-				logrus.Warn(err)
+				lg.LOG.Warn(err)
 			}
 		}
 	} else {
-		logrus.Warn(err)
+		lg.LOG.Warn(err)
 	}
 	return
 }
@@ -93,10 +93,10 @@ func (o *ModelExtractor) shallHandle(groupId int, groupName string) bool {
 }
 
 func (o *ModelExtractor) handleSharedGroups(parent *GroupNode, project *gitlab.Project) {
-	logrus.Debugf("handle group of project '%v'", project.Name)
+	lg.LOG.Debugf("handle group of project '%v'", project.Name)
 	for _, sharedGroup := range project.SharedWithGroups {
 		if err := o.handleChildGroup(parent, sharedGroup.GroupID, sharedGroup.GroupName); err != nil {
-			logrus.Warn(err)
+			lg.LOG.Warn(err)
 		}
 	}
 	return

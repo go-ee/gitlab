@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/go-ee/gitlab/cmd"
 	"github.com/go-ee/utils/cliu"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 	"os"
 )
@@ -12,8 +12,10 @@ func main() {
 	app := NewCli()
 
 	if err := app.Run(os.Args); err != nil {
-		logrus.WithFields(logrus.Fields{"err": err}).Warn("exit because of error.")
+		lg.LOG.Warnf("exit because of error, %v", err)
+		os.Exit(1)
 	}
+	_ = lg.LOG.Sync()
 }
 
 type Cli struct {
@@ -39,10 +41,8 @@ func (o *Cli) init() {
 	}
 
 	o.Before = func(c *cli.Context) (err error) {
-		if o.debug.CurrentValue {
-			logrus.SetLevel(logrus.DebugLevel)
-		}
-		logrus.Debugf("execute %v, %v", c.Command.Name, c.Args())
+		lg.InitLOG(o.debug.CurrentValue)
+		lg.LOG.Debugf("execute %v, %v", c.Command.Name, c.Args())
 		return
 	}
 

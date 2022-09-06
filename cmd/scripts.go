@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-ee/gitlab/core"
 	"github.com/go-ee/utils/cliu"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"path/filepath"
@@ -31,11 +31,11 @@ func NewScripts() (o *Scripts) {
 		},
 		Action: func(c *cli.Context) (err error) {
 			if o.scriptsFolder.CurrentValue, err = filepath.Abs(o.scriptsFolder.CurrentValue); err != nil {
-				logrus.Errorf("error %v by %v to %v", err, c.Command.Name, o.scriptsFolder)
+				lg.LOG.Errorf("error %v by %v to %v", err, c.Command.Name, o.scriptsFolder)
 				return
 			}
 
-			logrus.Debugf("execute %v to %v", c.Command.Name, o.scriptsFolder)
+			lg.LOG.Debugf("execute %v to %v", c.Command.Name, o.scriptsFolder)
 
 			var groupNode *core.GroupNode
 			if groupNode, err = o.loadJsonFile(); err != nil {

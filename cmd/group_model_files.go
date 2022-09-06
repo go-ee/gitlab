@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/go-ee/gitlab/core"
 	"github.com/go-ee/utils/cliu"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 )
 
@@ -30,7 +30,7 @@ func NewGroupModelByJsonFiles() (o *GroupModelJsonFiles) {
 			if err = o.prepareJsonFile(c); err != nil {
 				return
 			}
-			logrus.Debugf("execute %v to %v", c.Command.Name, o.jsonFile)
+			lg.LOG.Debugf("execute %v to %v", c.Command.Name, o.jsonFile)
 
 			var gitlabLite *core.GitlabLiteMem
 			if gitlabLite, err = core.NewGitlabLiteMemJson(
@@ -42,7 +42,7 @@ func NewGroupModelByJsonFiles() (o *GroupModelJsonFiles) {
 			if groupNode, err = o.extract(gitlabLite); err == nil {
 				err = o.writeJsonFile(groupNode)
 			} else {
-				logrus.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
+				lg.LOG.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
 				return
 			}
 			return

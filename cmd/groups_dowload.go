@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/go-ee/gitlab/core"
 	"github.com/go-ee/utils/cliu"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 	"strings"
 )
@@ -27,7 +27,7 @@ func NewGroupsDownloaderByAPI() (o *GroupsDownloaderByAPI) {
 			o.token, o.url, o.groups, o.ignores, o.groupsFolder,
 		},
 		Action: func(c *cli.Context) (err error) {
-			logrus.Debugf("execute %v for %v", c.Command.Name, o.groups.CurrentValue)
+			lg.LOG.Debugf("execute %v for %v", c.Command.Name, o.groups.CurrentValue)
 
 			var gitlabLite *core.GitlabLiteByAPI
 			if gitlabLite, err = o.gitlabLiteByAPI(); err != nil {
@@ -41,10 +41,10 @@ func NewGroupsDownloaderByAPI() (o *GroupsDownloaderByAPI) {
 					Group:            group,
 					IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 				}, gitlabLite); groupErr != nil {
-					logrus.Warnf("error at downloading of JSON for group %v", group)
+					lg.LOG.Warnf("error at downloading of JSON for group %v", group)
 				} else {
+					lg.LOG.Warnf("error at writing of JSON for group %v", group)
 					if groupWriter := modelWriter.OnGroupNode(groupNode); groupWriter != nil {
-						logrus.Warnf("error at writing of JSON for group %v", group)
 					}
 				}
 			}

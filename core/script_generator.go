@@ -3,7 +3,7 @@ package core
 import (
 	"bufio"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/xanzy/go-gitlab"
 	"os"
 )
@@ -14,7 +14,7 @@ type ScriptGenerator struct {
 }
 
 func Generate(groupNode *GroupNode, scriptsDir string, reposDir string, devBranch string) (err error) {
-	logrus.Infof("generate scripts for group '%v', scripts folder '%v', repos folder '%v', devBranch '%v'",
+	lg.LOG.Infof("generate scripts for group '%v', scripts folder '%v', repos folder '%v', devBranch '%v'",
 		groupNode.Group.Name, scriptsDir, reposDir, devBranch)
 	commands := []commandWriter{
 		&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
@@ -99,7 +99,7 @@ func (o *ScriptGenerator) generateDir(groupNode *GroupNode) (err error) {
 }
 
 func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
-	logrus.Debugf("handle group '%v'", groupNode.Group.Name)
+	lg.LOG.Debugf("handle group '%v'", groupNode.Group.Name)
 	for _, project := range groupNode.Group.Projects {
 		if err = o.command(project); err != nil {
 			return
@@ -107,7 +107,7 @@ func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
 	}
 	for _, subGroup := range groupNode.Children {
 		if err = o.generateDir(subGroup); err != nil {
-			logrus.Warn(err)
+			lg.LOG.Warn(err)
 		}
 
 	}
@@ -142,7 +142,7 @@ func (o *ScriptGenerator) cdBack() (err error) {
 }
 
 func (o *ScriptGenerator) command(project *gitlab.Project) (err error) {
-	logrus.Debugf("handle project '%v'", project.Name)
+	lg.LOG.Debugf("handle project '%v'", project.Name)
 	for _, writer := range o.writers {
 		if err = writer.command(project); err != nil {
 			return

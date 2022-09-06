@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-ee/gitlab/core"
 	"github.com/go-ee/utils/cliu"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"path/filepath"
@@ -27,7 +27,7 @@ func NewGroupModelBase() (o *GroupModelBase) {
 
 func (o *GroupModelBase) prepareJsonFile(c *cli.Context) (err error) {
 	if o.jsonFile.CurrentValue, err = filepath.Abs(o.jsonFile.CurrentValue); err != nil {
-		logrus.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
+		lg.LOG.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
 	}
 	return
 }
@@ -46,7 +46,7 @@ func (o *GroupModelBase) writeJsonFile(groupNode *core.GroupNode) (err error) {
 		return
 	}
 	targetFile := o.jsonFile.CurrentValue
-	logrus.Infof("write gitlab model '%v(%v)' to '%v'", groupNode.Group.Name, groupNode.Group.ID, targetFile)
+	lg.LOG.Infof("write gitlab model '%v(%v)' to '%v'", groupNode.Group.Name, groupNode.Group.ID, targetFile)
 	err = ioutil.WriteFile(targetFile, data, 0644)
 	return err
 }

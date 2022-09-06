@@ -3,7 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/lg"
 	"github.com/xanzy/go-gitlab"
 	"io/ioutil"
 	"os"
@@ -75,7 +75,7 @@ func (o *FileLoaderJson) LoadFileOrFolder(fileOfFolder string) (err error) {
 
 func (o *FileLoaderJson) matchFileName(file string) (ret bool) {
 	if ret = o.fileMatcher.MatchString(file); !ret {
-		logrus.Infof("ignore file '%v'", file)
+		lg.LOG.Infof("ignore file '%v'", file)
 	}
 	return ret
 }
@@ -92,7 +92,7 @@ func (o *ModelWriter) OnGroup(group *gitlab.Group) (err error) {
 	var data []byte
 	if data, err = json.Marshal(group); err == nil {
 		jsonFilePath := o.jsonFilePath(group.ID)
-		logrus.Infof("write gitlab group '%v' to '%v'", group.Name, jsonFilePath)
+		lg.LOG.Infof("write gitlab group '%v' to '%v'", group.Name, jsonFilePath)
 		err = os.WriteFile(jsonFilePath, data, 0644)
 	}
 	return

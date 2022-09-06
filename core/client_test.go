@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
+	"go.uber.org/zap"
 	"os"
 	"testing"
 )

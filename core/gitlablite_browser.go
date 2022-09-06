@@ -3,8 +3,8 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-ee/utils/lg"
 	"github.com/playwright-community/playwright-go"
-	"github.com/sirupsen/logrus"
 	"github.com/xanzy/go-gitlab"
 	"net/url"
 	"strings"
@@ -59,7 +59,7 @@ func (o *GitlabLiteByBrowser) AuthInteractive(waitForAuth int) (err error) {
 	var resp playwright.Response
 	groupsUrl := o.access.GroupsUrl()
 	resp, err = o.page.Goto(groupsUrl)
-	logrus.Debugf("response of %v: %v", groupsUrl, resp)
+	lg.LOG.Debugf("response of %v: %v", groupsUrl, resp)
 	return
 }
 
