@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
-	"github.com/go-ee/gitlab/core"
+	"github.com/go-ee/gitlab/lite"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
@@ -13,39 +13,39 @@ import (
 
 type GroupModelBase struct {
 	*cli.Command
-	group, ignores, jsonFile *cliu.StringFlag
+	group, ignores, groupModelFile *cliu.StringFlag
 }
 
 func NewGroupModelBase() (o *GroupModelBase) {
 	o = &GroupModelBase{
-		group:    NewGroupFlag(),
-		ignores:  NewIgnoresFlag(),
-		jsonFile: NewJsonFileFlag(),
+		group:          NewGroupFlag(),
+		ignores:        NewIgnoresFlag(),
+		groupModelFile: NewGroupModelFileFlag(),
 	}
 	return
 }
 
 func (o *GroupModelBase) prepareJsonFile(c *cli.Context) (err error) {
-	if o.jsonFile.CurrentValue, err = filepath.Abs(o.jsonFile.CurrentValue); err != nil {
-		lg.LOG.Errorf("error %v by %v to %v", err, c.Command.Name, o.jsonFile)
+	if o.groupModelFile.CurrentValue, err = filepath.Abs(o.groupModelFile.CurrentValue); err != nil {
+		lg.LOG.Errorf("error %v by %v to %v", err, c.Command.Name, o.groupModelFile)
 	}
 	return
 }
 
-func (o *GroupModelBase) extract(client core.GitlabLite) (ret *core.GroupNode, err error) {
-	ret, err = core.Extract(&core.ExtractParams{
+func (o *GroupModelBase) extract(client lite.GitlabLite) (ret *lite.GroupNode, err error) {
+	ret, err = lite.FetchGroupModel(&lite.GroupModelParams{
 		Group:            o.group.CurrentValue,
 		IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 	}, client)
 	return
 }
 
-func (o *GroupModelBase) writeJsonFile(groupNode *core.GroupNode) (err error) {
+func (o *GroupModelBase) writeJsonFile(groupNode *lite.GroupNode) (err error) {
 	var data []byte
 	if data, err = json.MarshalIndent(groupNode, "", " "); err != nil {
 		return
 	}
-	targetFile := o.jsonFile.CurrentValue
+	targetFile := o.groupModelFile.CurrentValue
 	lg.LOG.Infof("write gitlab model '%v(%v)' to '%v'", groupNode.Group.Name, groupNode.Group.ID, targetFile)
 	err = ioutil.WriteFile(targetFile, data, 0644)
 	return err

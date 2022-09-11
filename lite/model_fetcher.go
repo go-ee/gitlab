@@ -1,4 +1,4 @@
-package core
+package lite
 
 import (
 	"github.com/go-ee/utils/lg"
@@ -6,28 +6,28 @@ import (
 	"strconv"
 )
 
-type ModelExtractor struct {
+type ModelAccessor struct {
 	client               GitlabLite
 	alreadyHandledGroups map[int]bool
 	ignoreGroupNames     map[string]bool
 }
 
-type ExtractParams struct {
+type GroupModelParams struct {
 	Group            string
 	IgnoreGroupNames map[string]bool
 }
 
-func Extract(params *ExtractParams, client GitlabLite) (ret *GroupNode, err error) {
-	extractor := &ModelExtractor{
+func FetchGroupModel(params *GroupModelParams, client GitlabLite) (ret *GroupNode, err error) {
+	extractor := &ModelAccessor{
 		client:               client,
 		alreadyHandledGroups: make(map[int]bool, 0),
 		ignoreGroupNames:     params.IgnoreGroupNames,
 	}
-	ret, err = extractor.ExtractByGroup(params.Group)
+	ret, err = extractor.FetchGroupModelByGroup(params.Group)
 	return
 }
 
-func (o *ModelExtractor) ExtractByGroup(groupNameOrId string) (ret *GroupNode, err error) {
+func (o *ModelAccessor) FetchGroupModelByGroup(groupNameOrId string) (ret *GroupNode, err error) {
 	var group *gitlab.Group
 	if group, err = o.client.GetGroupByName(groupNameOrId); err == nil {
 		ret, err = o.extract(group)
@@ -44,7 +44,7 @@ func (o *ModelExtractor) ExtractByGroup(groupNameOrId string) (ret *GroupNode, e
 	return
 }
 
-func (o *ModelExtractor) handleChildGroup(parent *GroupNode, groupId int, groupName string) (err error) {
+func (o *ModelAccessor) handleChildGroup(parent *GroupNode, groupId int, groupName string) (err error) {
 	if o.shallHandle(groupId, groupName) {
 		o.alreadyHandledGroups[groupId] = true
 
@@ -60,7 +60,7 @@ func (o *ModelExtractor) handleChildGroup(parent *GroupNode, groupId int, groupN
 	return
 }
 
-func (o *ModelExtractor) extract(group *gitlab.Group) (ret *GroupNode, err error) {
+func (o *ModelAccessor) extract(group *gitlab.Group) (ret *GroupNode, err error) {
 	lg.LOG.Infof("extract group '%v(%v)'", group.Name, group.ID)
 	o.alreadyHandledGroups[group.ID] = true
 
@@ -75,7 +75,7 @@ func (o *ModelExtractor) extract(group *gitlab.Group) (ret *GroupNode, err error
 	return
 }
 
-func (o *ModelExtractor) handleSubGroups(parent *GroupNode, groupId int) {
+func (o *ModelAccessor) handleSubGroups(parent *GroupNode, groupId int) {
 	if subGroups, err := o.client.ListSubgroups(groupId); err == nil {
 		for _, subGroup := range subGroups {
 			if err := o.handleChildGroup(parent, subGroup.ID, subGroup.Name); err != nil {
@@ -88,11 +88,11 @@ func (o *ModelExtractor) handleSubGroups(parent *GroupNode, groupId int) {
 	return
 }
 
-func (o *ModelExtractor) shallHandle(groupId int, groupName string) bool {
+func (o *ModelAccessor) shallHandle(groupId int, groupName string) bool {
 	return !o.alreadyHandledGroups[groupId] && !o.ignoreGroupNames[groupName]
 }
 
-func (o *ModelExtractor) handleSharedGroups(parent *GroupNode, project *gitlab.Project) {
+func (o *ModelAccessor) handleSharedGroups(parent *GroupNode, project *gitlab.Project) {
 	lg.LOG.Debugf("handle group of project '%v'", project.Name)
 	for _, sharedGroup := range project.SharedWithGroups {
 		if err := o.handleChildGroup(parent, sharedGroup.GroupID, sharedGroup.GroupName); err != nil {

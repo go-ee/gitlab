@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/go-ee/gitlab/core"
+	"github.com/go-ee/gitlab/lite"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
@@ -37,15 +37,15 @@ func NewGroupsDownloaderByBrowser() (o *GroupsDownloaderByBrowser) {
 		Action: func(c *cli.Context) (err error) {
 			lg.LOG.Debugf("execute %v for %v", c.Command.Name, o.groups.CurrentValue)
 
-			var gitlabLite *core.GitlabLiteByBrowser
+			var gitlabLite *lite.GitlabLiteByBrowser
 			if gitlabLite, err = o.gitlabLiteByBrowser(); err != nil {
 				return
 			}
-			modelWriter := &core.ModelWriter{GroupsFolder: o.groupsFolder.CurrentValue}
+			modelWriter := &lite.ModelWriter{GroupsFolder: o.groupsFolder.CurrentValue}
 			if err = gitlabLite.AuthInteractive(o.waitForAuth.CurrentValue); err == nil {
 				groups := strings.Split(o.groups.CurrentValue, ",")
 				for _, group := range groups {
-					if groupNode, groupErr := core.Extract(&core.ExtractParams{
+					if groupNode, groupErr := lite.FetchGroupModel(&lite.GroupModelParams{
 						Group:            group,
 						IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 					}, gitlabLite); groupErr != nil {
@@ -63,15 +63,15 @@ func NewGroupsDownloaderByBrowser() (o *GroupsDownloaderByBrowser) {
 	return
 }
 
-func (o *GroupsDownloaderByBrowser) gitlabLiteByBrowser() (ret *core.GitlabLiteByBrowser, err error) {
+func (o *GroupsDownloaderByBrowser) gitlabLiteByBrowser() (ret *lite.GitlabLiteByBrowser, err error) {
 	if err = os.MkdirAll(o.groupsFolder.CurrentValue, 0755); err == nil {
-		ret, err = core.NewGitlabLiteByBrowser(o.buildBrowserAccess(), o.installBrowsers.CurrentValue)
+		ret, err = lite.NewGitlabLiteByBrowser(o.buildBrowserAccess(), o.installBrowsers.CurrentValue)
 	}
 	return
 }
 
-func (o *GroupsDownloaderByBrowser) buildBrowserAccess() *core.BrowserAccess {
-	return &core.BrowserAccess{
+func (o *GroupsDownloaderByBrowser) buildBrowserAccess() *lite.BrowserAccess {
+	return &lite.BrowserAccess{
 		UrlAuth: o.url.CurrentValue,
 		UrlApi:  fmt.Sprintf("%v/%v", o.url.CurrentValue, o.urlApiPart.CurrentValue)}
 }

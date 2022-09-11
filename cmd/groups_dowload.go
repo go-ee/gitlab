@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/gitlab/core"
+	"github.com/go-ee/gitlab/lite"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
@@ -29,15 +29,15 @@ func NewGroupsDownloaderByAPI() (o *GroupsDownloaderByAPI) {
 		Action: func(c *cli.Context) (err error) {
 			lg.LOG.Debugf("execute %v for %v", c.Command.Name, o.groups.CurrentValue)
 
-			var gitlabLite *core.GitlabLiteByAPI
+			var gitlabLite *lite.GitlabLiteByAPI
 			if gitlabLite, err = o.gitlabLiteByAPI(); err != nil {
 				return
 			}
 
-			modelWriter := &core.ModelWriter{GroupsFolder: o.groupsFolder.CurrentValue}
+			modelWriter := &lite.ModelWriter{GroupsFolder: o.groupsFolder.CurrentValue}
 			groups := strings.Split(o.groups.CurrentValue, ",")
 			for _, group := range groups {
-				if groupNode, groupErr := core.Extract(&core.ExtractParams{
+				if groupNode, groupErr := lite.FetchGroupModel(&lite.GroupModelParams{
 					Group:            group,
 					IgnoreGroupNames: buildIgnoresMap(o.ignores.CurrentValue),
 				}, gitlabLite); groupErr != nil {

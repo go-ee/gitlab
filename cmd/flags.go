@@ -115,11 +115,11 @@ func NewsReposFolderFlag() *cliu.StringFlag {
 	})
 }
 
-func NewJsonFileFlag() *cliu.StringFlag {
+func NewGroupModelFileFlag() *cliu.StringFlag {
 	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "json-file",
-		Usage: "JSON file name",
-		Value: "gitlab.json",
+		Name:  "group-model-file",
+		Usage: "Group model JSON file name",
+		Value: "group-model-gitlab.json",
 	})
 
 }

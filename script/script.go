@@ -1,43 +1,42 @@
-package core
+package script
 
 import (
 	"bufio"
 	"fmt"
+	"github.com/go-ee/gitlab/lite"
 	"github.com/go-ee/utils/lg"
 	"github.com/xanzy/go-gitlab"
 	"os"
 )
 
-type ScriptGenerator struct {
-	writers   []commandWriter
-	devBranch string
+type Generator struct {
+	Writers []CommandWriter
 }
 
-func Generate(groupNode *GroupNode, scriptsDir string, reposDir string, devBranch string) (err error) {
-	lg.LOG.Infof("generate scripts for group '%v', scripts folder '%v', repos folder '%v', devBranch '%v'",
-		groupNode.Group.Name, scriptsDir, reposDir, devBranch)
-	commands := []commandWriter{
+func NewGenerator() (ret *Generator) {
+	commands := []CommandWriter{
 		&repoCommandWriter{&commandFileName{command: "clone --recurse-submodules -j8", fileName: "clone"}},
 		&genericCommandWriter{&commandFileName{command: "pull", fileName: "pull"}},
 		&genericCommandWriter{&commandFileName{command: "status", fileName: "status"}},
-		&genericCommandWriter{&commandFileName{command: "checkout " + devBranch, fileName: "devBranch"}},
-		&genericCommandWriter{&commandFileName{command: "checkout master", fileName: "master"}},
 	}
 
-	generator := &ScriptGenerator{
-		writers:   commands,
-		devBranch: devBranch,
+	ret = &Generator{
+		Writers: commands,
 	}
+	return
+}
+
+func Generate(groupNode *lite.GroupNode, scriptsDir string, reposDir string) (err error) {
+	lg.LOG.Infof("generateGroup scripts for group '%v', scripts folder '%v', repos folder '%v'",
+		groupNode.Group.Name, scriptsDir, reposDir)
+	generator := NewGenerator()
 
 	if err = generator.createFileWriter(scriptsDir, reposDir); err != nil {
 		return
 	}
+	defer generator.close()
 
-	defer func() {
-		err = generator.close()
-	}()
-
-	if err = generator.generate(groupNode); err != nil {
+	if err = generator.generateGroup(groupNode); err != nil {
 		return
 	}
 
@@ -52,8 +51,8 @@ func Generate(groupNode *GroupNode, scriptsDir string, reposDir string, devBranc
 	return
 }
 
-func (o *ScriptGenerator) createFileWriter(scriptsDir string, reposDir string) (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) createFileWriter(scriptsDir string, reposDir string) (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.createFileWriter(scriptsDir, reposDir); err != nil {
 			return
 		}
@@ -61,8 +60,8 @@ func (o *ScriptGenerator) createFileWriter(scriptsDir string, reposDir string) (
 	return
 }
 
-func (o *ScriptGenerator) flush() (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) flush() (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.flush(); err != nil {
 			return
 		}
@@ -70,8 +69,8 @@ func (o *ScriptGenerator) flush() (err error) {
 	return
 }
 
-func (o *ScriptGenerator) close() (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) close() (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.close(); err != nil {
 			return
 		}
@@ -79,7 +78,7 @@ func (o *ScriptGenerator) close() (err error) {
 	return
 }
 
-func (o *ScriptGenerator) generateDir(groupNode *GroupNode) (err error) {
+func (o *Generator) generateDirAndGroup(groupNode *lite.GroupNode) (err error) {
 	if err = o.ensureDir(groupNode.Group); err != nil {
 		return
 	}
@@ -87,7 +86,7 @@ func (o *ScriptGenerator) generateDir(groupNode *GroupNode) (err error) {
 		return
 	}
 
-	if err = o.generate(groupNode); err != nil {
+	if err = o.generateGroup(groupNode); err != nil {
 		return
 	}
 
@@ -98,7 +97,7 @@ func (o *ScriptGenerator) generateDir(groupNode *GroupNode) (err error) {
 	return
 }
 
-func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
+func (o *Generator) generateGroup(groupNode *lite.GroupNode) (err error) {
 	lg.LOG.Debugf("handle group '%v'", groupNode.Group.Name)
 	for _, project := range groupNode.Group.Projects {
 		if err = o.command(project); err != nil {
@@ -106,7 +105,7 @@ func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
 		}
 	}
 	for _, subGroup := range groupNode.Children {
-		if err = o.generateDir(subGroup); err != nil {
+		if err = o.generateDirAndGroup(subGroup); err != nil {
 			lg.LOG.Warn(err)
 		}
 
@@ -114,8 +113,8 @@ func (o *ScriptGenerator) generate(groupNode *GroupNode) (err error) {
 	return
 }
 
-func (o *ScriptGenerator) ensureDir(group *gitlab.Group) (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) ensureDir(group *gitlab.Group) (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.ensureDir(group); err != nil {
 			return
 		}
@@ -123,8 +122,8 @@ func (o *ScriptGenerator) ensureDir(group *gitlab.Group) (err error) {
 	return
 }
 
-func (o *ScriptGenerator) cd(group *gitlab.Group) (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) cd(group *gitlab.Group) (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.cd(group); err != nil {
 			return
 		}
@@ -132,8 +131,8 @@ func (o *ScriptGenerator) cd(group *gitlab.Group) (err error) {
 	return
 }
 
-func (o *ScriptGenerator) cdBack() (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) cdBack() (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.cdBack(); err != nil {
 			return
 		}
@@ -141,9 +140,9 @@ func (o *ScriptGenerator) cdBack() (err error) {
 	return
 }
 
-func (o *ScriptGenerator) command(project *gitlab.Project) (err error) {
+func (o *Generator) command(project *gitlab.Project) (err error) {
 	lg.LOG.Debugf("handle project '%v'", project.Name)
-	for _, writer := range o.writers {
+	for _, writer := range o.Writers {
 		if err = writer.command(project); err != nil {
 			return
 		}
@@ -151,8 +150,8 @@ func (o *ScriptGenerator) command(project *gitlab.Project) (err error) {
 	return
 }
 
-func (o *ScriptGenerator) pause() (err error) {
-	for _, writer := range o.writers {
+func (o *Generator) pause() (err error) {
+	for _, writer := range o.Writers {
 		if err = writer.pause(); err != nil {
 			return
 		}
@@ -324,7 +323,7 @@ func (o *genericCommandWriter) echo(project *gitlab.Project) (err error) {
 	return
 }
 
-type commandWriter interface {
+type CommandWriter interface {
 	command(project *gitlab.Project) (err error)
 
 	ensureDir(group *gitlab.Group) (err error)

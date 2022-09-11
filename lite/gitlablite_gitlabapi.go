@@ -1,4 +1,4 @@
-package core
+package lite
 
 import "github.com/xanzy/go-gitlab"
 

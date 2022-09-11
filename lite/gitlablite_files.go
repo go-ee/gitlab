@@ -1,4 +1,4 @@
-package core
+package lite
 
 func NewGitlabLiteMemJson(fileOrFolderJson string, filePattern string) (ret *GitlabLiteMem, err error) {
 	ret = NewGitlabLiteMem()

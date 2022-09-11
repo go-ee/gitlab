@@ -1,11 +1,10 @@
-package core
+package lite
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-ee/utils/lg"
 	"github.com/xanzy/go-gitlab"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,7 +31,7 @@ func NewFileLoaderJson(filePattern string, onGroup func(group *gitlab.Group)) (r
 }
 
 func (o *FileLoaderJson) loadFile(jsonFile string, onGroup func(group *gitlab.Group)) (err error) {
-	file, _ := ioutil.ReadFile(jsonFile)
+	file, _ := os.ReadFile(jsonFile)
 	group := gitlab.Group{}
 
 	if err = json.Unmarshal(file, &group); err == nil {

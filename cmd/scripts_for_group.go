@@ -2,32 +2,32 @@ package cmd
 
 import (
 	"encoding/json"
-	"github.com/go-ee/gitlab/core"
+	"github.com/go-ee/gitlab/lite"
+	"github.com/go-ee/gitlab/script"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
-type Scripts struct {
+type ScriptsForGroup struct {
 	*cli.Command
-	jsonFile, scriptsFolder, reposFolder, devBranch *cliu.StringFlag
+	groupFile, scriptsFolder, reposFolder *cliu.StringFlag
 }
 
-func NewScripts() (o *Scripts) {
-	o = &Scripts{
-		jsonFile:      NewJsonFileFlag(),
+func NewScriptsForGroup() (o *ScriptsForGroup) {
+	o = &ScriptsForGroup{
+		groupFile:     NewGroupModelFileFlag(),
 		scriptsFolder: NewsScriptsFolderFlag(),
 		reposFolder:   NewsReposFolderFlag(),
-		devBranch:     NewDevBranchFlag(),
 	}
 
 	o.Command = &cli.Command{
 		Name:  "scripts",
 		Usage: "Generate scripts for clone, pull.. and structure creation for all projects of a group recursively",
 		Flags: []cli.Flag{
-			o.jsonFile, o.scriptsFolder, o.reposFolder,
+			o.groupFile, o.scriptsFolder, o.reposFolder,
 		},
 		Action: func(c *cli.Context) (err error) {
 			if o.scriptsFolder.CurrentValue, err = filepath.Abs(o.scriptsFolder.CurrentValue); err != nil {
@@ -37,13 +37,12 @@ func NewScripts() (o *Scripts) {
 
 			lg.LOG.Debugf("execute %v to %v", c.Command.Name, o.scriptsFolder)
 
-			var groupNode *core.GroupNode
+			var groupNode *lite.GroupNode
 			if groupNode, err = o.loadJsonFile(); err != nil {
 				return
 			}
 
-			err = core.Generate(
-				groupNode, o.scriptsFolder.CurrentValue, o.reposFolder.CurrentValue, o.devBranch.CurrentValue)
+			err = script.Generate(groupNode, o.scriptsFolder.CurrentValue, o.reposFolder.CurrentValue)
 
 			return
 		},
@@ -51,10 +50,10 @@ func NewScripts() (o *Scripts) {
 	return
 }
 
-func (o *Scripts) loadJsonFile() (ret *core.GroupNode, err error) {
-	data, _ := ioutil.ReadFile(o.jsonFile.CurrentValue)
+func (o *ScriptsForGroup) loadJsonFile() (ret *lite.GroupNode, err error) {
+	data, _ := os.ReadFile(o.groupFile.CurrentValue)
 
-	groupNode := core.GroupNode{}
+	groupNode := lite.GroupNode{}
 	err = json.Unmarshal(data, &groupNode)
 	ret = &groupNode
 
