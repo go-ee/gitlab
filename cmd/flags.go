@@ -1,125 +1,72 @@
 package cmd
 
 import (
-	"github.com/go-ee/utils/cliu"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/pflag"
 )
 
-func NewDebugFlag() *cliu.BoolFlag {
-	return cliu.NewBoolFlag(&cli.BoolFlag{
-		Name:  "debug",
-		Usage: "Enable debug log level",
-	})
+func FlagGroups(flagSet *pflag.FlagSet, p *[]string) (flagName string) {
+	flagName = "groups"
+	flagSet.StringSliceVar(p, flagName, nil, "Gitlab groups (ID or name), semicolon separated or multiple flags")
+	return
 }
 
-func NewTokenFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:     "token",
-		Required: true,
-		Usage:    "Gitlab token",
-	})
+func FlagIgnoreGroups(flagSet *pflag.FlagSet, p *[]string) (flagName string) {
+	flagName = "ignoreGroups"
+	flagSet.StringSliceVar(p, flagName, nil, "Ignore Gitlab groups (ID or name), semicolon separated or multiple flags")
+	return
 }
 
-func NewApiUrlPart() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "urlApiPart",
-		Usage: "URL API part",
-		Value: "api/v4",
-	})
+func FlagOutputDir(flagSet *pflag.FlagSet, p *string) (flagName string) {
+	flagName = "outputDir"
+	flagSet.StringVarP(p, flagName, "o", ".", "output directory")
+	return
 }
 
-func NewWaitForAuthInteractive() *cliu.IntFlag {
-	return cliu.NewIntFlag(&cli.IntFlag{
-		Name:  "waitForAuth",
-		Usage: "Wait duration for interactive authentication delay (in seconds)",
-		Value: 20000,
-	})
+func FlagOfflineGroupsDir(flagSet *pflag.FlagSet, p *string) (flagName string) {
+	flagName = "OfflineGroupsDir"
+	flagSet.StringVarP(p, flagName, "", offlineGroupsDir, "Directory for single Gitlab groups JSON files")
+	return
 }
 
-func NewInstallBrowsers() *cliu.BoolFlag {
-	return cliu.NewBoolFlag(&cli.BoolFlag{
-		Name:  "installEmbeddedBrowsers",
-		Usage: "Install compatible embedded browsers",
-		Value: false,
-	})
+func FlagOfflineModeSupport(flagSet *pflag.FlagSet, p *bool) (flagName string) {
+	flagName = "OfflineModeSupport"
+	flagSet.BoolVarP(p, flagName, "", offlineModeSupport,
+		"Some operations of the tool could be executed without connection to Gitlab server. In order to support it, single Gitlab groups representation have to be downloaded if connection to Gitlab server is available.")
+	return
 }
 
-func NewUrlFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:     "url",
-		Required: true,
-		Usage:    "Gitlab server url",
-	})
+func FlagGroupModelFileName(flagSet *pflag.FlagSet, p *string) (flagName string) {
+	flagName = "groupModelFileName"
+	flagSet.StringVarP(p, flagName, "f", groupsModelFileName, "JSON ")
+	return
 }
 
-func NewGroupFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:     "group",
-		Usage:    "Gitlab group",
-		Required: true,
-	})
+func FlagGitlabUrl(flagSet *pflag.FlagSet, p *string) (flagName string) {
+	flagName = "url"
+	flagSet.StringVarP(p, flagName, "u", "", "Gitlab URL")
+	return
 }
 
-func NewGroupsFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:     "groups",
-		Usage:    "Gitlab groups (comma separated)",
-		Required: true,
-	})
+func FlagGitlabUrlApiPart(flagSet *pflag.FlagSet, p *string) (flagName string) {
+	flagName = "urlApiPart"
+	flagSet.StringVarP(p, flagName, "", gitlabUrlApiPart, "Gitlab URL API part as suffix for Gitlab URL")
+	return
 }
 
-func NewGroupsFolderFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "groups-folder",
-		Usage: "Folder of group JSON files",
-		Value: "__gitlab",
-	})
+func FlagGitlabAccessToken(flagSet *pflag.FlagSet, p *string) (flagName string) {
+	flagName = "token"
+	flagSet.StringVarP(p, flagName, "t", "", "Gitlab token")
+	return
 }
 
-func NewFilePatternFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "file-pattern",
-		Usage: "Log file Name regular expression pattern",
-		Value: ".+?\\.json$",
-	})
+func FlagWaitForAuthInteractive(flagSet *pflag.FlagSet, p *int) (flagName string) {
+	flagName = "waitForAuth"
+	flagSet.IntVarP(p, flagName, "", waitForAuthInteractive, "Wait duration for interactive authentication delay (in seconds)")
+	return
 }
 
-func NewIgnoresFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "ignores",
-		Usage: "Ignore group names the comma separated groups",
-	})
-}
-
-func NewDevBranchFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "dev-branch",
-		Usage: "Development branch",
-		Value: "dev",
-	})
-}
-
-func NewsScriptsFolderFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "scripts-folder",
-		Usage: "Folder where scripts are generated",
-		Value: ".",
-	})
-}
-
-func NewsReposFolderFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "repos-folder",
-		Usage: "Folder where repositories will be cloned and pulled",
-		Value: "src",
-	})
-}
-
-func NewGroupModelFileFlag() *cliu.StringFlag {
-	return cliu.NewStringFlag(&cli.StringFlag{
-		Name:  "group-model-file",
-		Usage: "Group model JSON file name",
-		Value: "group-model-gitlab.json",
-	})
-
+func FlagInstallEmbeddedBrowsers(flagSet *pflag.FlagSet, p *bool) (flagName string) {
+	flagName = "installEmbeddedBrowsers"
+	flagSet.BoolVarP(p, flagName, "", installBrowsers, "Install compatible embedded browsers or reuse browser of the system.")
+	return
 }
