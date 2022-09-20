@@ -23,7 +23,7 @@ func NewGitlabLiteByBrowser(access *BrowserAccess, installBrowsers bool) (ret *G
 	return
 }
 
-func (o *GitlabLiteByBrowser) InstallBrowsers() (err error) {
+func (o *GitlabLiteByBrowser) InstallDriversAndEmbeddedBrowsers() (err error) {
 	err = playwright.Install()
 	return
 }

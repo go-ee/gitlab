@@ -37,7 +37,7 @@ var groupModelGitlabApiCmd = &cobra.Command{
 		if gitlabLite, err = newGitlabLiteByApi(); err != nil {
 			return
 		}
-		if modelHandler, err = newModelWriter(); err != nil {
+		if modelHandler, err = newJsonModelWriter(); err != nil {
 			return
 		}
 
@@ -53,7 +53,6 @@ func newGitlabLiteByApi() (*lite.GitlabLiteByAPI, error) {
 func init() {
 	groupModelCmd.AddCommand(groupModelGitlabApiCmd)
 
-	//_ = groupModelCmd.MarkPersistentFlagRequired(
-	//	FlagGitlabAccessToken(groupModelCmd.PersistentFlags(), &gitlabAccessToken))
-	FlagGitlabAccessToken(groupModelCmd.PersistentFlags(), &gitlabAccessToken)
+	_ = groupModelCmd.MarkPersistentFlagRequired(
+		FlagGitlabAccessToken(groupModelCmd.Flags(), &gitlabAccessToken))
 }

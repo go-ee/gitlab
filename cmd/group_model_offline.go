@@ -28,14 +28,15 @@ import (
 
 // groupModelOfflineCmd represents the groupModelOffline command
 var groupModelOfflineCmd = &cobra.Command{
-	Use:   "offline",
-	Short: "Use groups files downloaded before before.",
-	Long:  `This operation can be used without connection to Gitlab when Gitlab groups files were downloaded before`,
+	Use:              "offline",
+	Short:            "Use groups files downloaded before before.",
+	Long:             `This operation can be used without connection to Gitlab when Gitlab groups files were downloaded before`,
+	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		if gitlabLite, err = lite.NewGitlabLiteMemJson(offlineGroupsDir, offlineGroupsFilesPattern); err != nil {
 			return
 		}
-		if modelHandler, err = newModelWriter(); err != nil {
+		if modelHandler, err = newJsonModelWriter(); err != nil {
 			return
 		}
 

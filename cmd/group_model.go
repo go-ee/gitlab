@@ -37,14 +37,16 @@ var offlineModeSupport = true
 var offlineGroupsDir = ".gitlab"
 var offlineGroupsFilesPattern = ".+?\\.json$"
 var groupsModelFileName = ".gitlab.json"
+var storeGroupModel = true
 
 var gitlabLite lite.GitlabLite
 var modelHandler lite.ModelHandler
 
 // groupModelCmd represents the groupsModel command
 var groupModelCmd = &cobra.Command{
-	Use:   "groupModel",
-	Short: "Reads groups models",
+	Use:              "group-model",
+	Short:            "Reads groups models",
+	TraverseChildren: true,
 }
 
 func readGroupsModels() (err error) {
@@ -66,7 +68,7 @@ func readGroupsModels() (err error) {
 	return
 }
 
-func newModelWriter() (ret *lite.JsonWriterModelHandler, err error) {
+func newJsonModelWriter() (ret *lite.JsonWriterModelHandler, err error) {
 	var absOutputDir string
 	if absOutputDir, err = filepath.Abs(outputDir); err != nil {
 		return
@@ -74,8 +76,9 @@ func newModelWriter() (ret *lite.JsonWriterModelHandler, err error) {
 	ret = &lite.JsonWriterModelHandler{
 		OutputDir:           absOutputDir,
 		GroupsModelFileName: groupsModelFileName,
-		WriteGroupNode:      true,
-		WriteSubGroup:       true,
+		WriteGroup:          offlineModeSupport,
+		WriteGroupNode:      storeGroupModel,
+		WriteSubGroup:       storeGroupModel,
 	}
 	return
 }
@@ -92,4 +95,9 @@ func init() {
 	FlagGroupModelFileName(groupModelCmd.PersistentFlags(), &groupsModelFileName)
 	FlagOutputDir(groupModelCmd.PersistentFlags(), &outputDir)
 	FlagIgnoreGroups(groupModelCmd.PersistentFlags(), &ignoreGroups)
+
+	FlagStoreGroupModel(groupModelCmd.PersistentFlags(), &storeGroupModel)
+
+	FlagOfflineSupport(groupModelCmd.PersistentFlags(), &offlineModeSupport)
+	FlagOfflineGroupsDir(groupModelCmd.PersistentFlags(), &outputDir)
 }

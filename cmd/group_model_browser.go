@@ -27,8 +27,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var waitForAuthInteractive = 20000
-var installBrowsers = false
+var waitForAuthInteractive = 40000
+var installDriversAndEmbeddedBrowsers = false
 
 // groupModelBrowserCmd represents the groupModelBrowser command
 var groupModelBrowserCmd = &cobra.Command{
@@ -36,15 +36,21 @@ var groupModelBrowserCmd = &cobra.Command{
 	Short: "Use browser automation for Gitlab group reading instead of GitLab API",
 	Long: `If Gitlab API is not accessible (or there are some problems) use browser automation for reading of Gitlab model. 
             This operation requires GUI desktop for manual interaction for authentication to Gitlab.`,
+	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if gitlabLite, err = lite.NewGitlabLiteByBrowser(buildBrowserAccess(), installBrowsers); err != nil {
+		var gitlabLiteNyBrowser *lite.GitlabLiteByBrowser
+		if gitlabLiteNyBrowser, err = lite.NewGitlabLiteByBrowser(buildBrowserAccess(), installDriversAndEmbeddedBrowsers); err != nil {
 			return
 		}
-		if modelHandler, err = newModelWriter(); err != nil {
+		gitlabLite = gitlabLiteNyBrowser
+
+		if modelHandler, err = newJsonModelWriter(); err != nil {
 			return
 		}
 
-		err = readGroupsModels()
+		if err = gitlabLiteNyBrowser.AuthInteractive(waitForAuthInteractive); err == nil {
+			err = readGroupsModels()
+		}
 		return
 	},
 }
@@ -59,6 +65,6 @@ func init() {
 	groupModelCmd.AddCommand(groupModelBrowserCmd)
 
 	FlagWaitForAuthInteractive(groupModelBrowserCmd.PersistentFlags(), &waitForAuthInteractive)
-	FlagInstallEmbeddedBrowsers(groupModelBrowserCmd.PersistentFlags(), &installBrowsers)
+	FlagInstallEmbeddedBrowsers(groupModelBrowserCmd.PersistentFlags(), &installDriversAndEmbeddedBrowsers)
 	FlagGitlabUrlApiPart(groupModelBrowserCmd.PersistentFlags(), &gitlabUrlApiPart)
 }
