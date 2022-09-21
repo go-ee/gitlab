@@ -22,18 +22,16 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
 // gitScriptsCmd represents the gitScripts command
 var gitScriptsCmd = &cobra.Command{
-	Use:              "gitScripts",
+	Use:              "git-scripts",
 	Short:            "Generate Git scripts (clone, pull, push, etc.) based on group model",
 	TraverseChildren: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("gitScripts called")
+
 	},
 }
 
