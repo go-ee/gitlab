@@ -1,0 +1,1 @@
+{{- template "gitscript.gtpl" (dict "gitActionLabel" "pull" "gitAction" "pull" "groupNode" .) -}}

@@ -1,0 +1,1 @@
+{{- template "gitscript.gtpl" (dict "gitActionLabel" "clone" "gitAction" "clone --recurse-submodules -j8" "groupNode" .) -}}
