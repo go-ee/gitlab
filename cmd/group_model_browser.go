@@ -38,21 +38,25 @@ var groupModelBrowserCmd = &cobra.Command{
             This operation requires GUI desktop for manual interaction for authentication to Gitlab.`,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		var gitlabLiteNyBrowser *lite.GitlabLiteByBrowser
-		if gitlabLiteNyBrowser, err = lite.NewGitlabLiteByBrowser(buildBrowserAccess(), installDriversAndEmbeddedBrowsers); err != nil {
-			return
-		}
-		gitlabLite = gitlabLiteNyBrowser
-
-		if modelHandler, err = newJsonModelWriter(); err != nil {
-			return
-		}
-
-		if err = gitlabLiteNyBrowser.AuthInteractive(waitForAuthInteractive); err == nil {
-			err = readGroupsModels()
-		}
-		return
+		return modelByBrowser()
 	},
+}
+
+func modelByBrowser() (err error) {
+	var gitlabLiteNyBrowser *lite.GitlabLiteByBrowser
+	if gitlabLiteNyBrowser, err = lite.NewGitlabLiteByBrowser(buildBrowserAccess(), installDriversAndEmbeddedBrowsers); err != nil {
+		return
+	}
+	gitlabLite = gitlabLiteNyBrowser
+
+	if modelHandler, err = newJsonModelWriter(); err != nil {
+		return
+	}
+
+	if err = gitlabLiteNyBrowser.AuthInteractive(waitForAuthInteractive); err == nil {
+		err = readGroupsModels()
+	}
+	return
 }
 
 func buildBrowserAccess() *lite.BrowserAccess {
@@ -63,6 +67,9 @@ func buildBrowserAccess() *lite.BrowserAccess {
 
 func init() {
 	groupModelCmd.AddCommand(groupModelBrowserCmd)
+
+	_ = groupModelBrowserCmd.MarkPersistentFlagRequired(
+		FlagGitlabUrl(groupModelBrowserCmd.Flags(), &gitlabUrl))
 
 	FlagWaitForAuthInteractive(groupModelBrowserCmd.PersistentFlags(), &waitForAuthInteractive)
 	FlagInstallEmbeddedBrowsers(groupModelBrowserCmd.PersistentFlags(), &installDriversAndEmbeddedBrowsers)

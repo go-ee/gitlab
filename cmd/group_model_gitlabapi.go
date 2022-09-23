@@ -34,16 +34,22 @@ var groupModelGitlabApiCmd = &cobra.Command{
 	Short: "Use Gitlab API for Gitlab group reading",
 	Long:  `This is the recommended way when Gitlab API is accessible.`,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if gitlabLite, err = newGitlabLiteByApi(); err != nil {
-			return
-		}
-		if modelHandler, err = newJsonModelWriter(); err != nil {
-			return
-		}
-
-		err = readGroupsModels()
+		err = modelByApi()
 		return
 	},
+}
+
+func modelByApi() (err error) {
+	if gitlabLite, err = newGitlabLiteByApi(); err != nil {
+		return
+	}
+
+	if modelHandler, err = newJsonModelWriter(); err != nil {
+		return
+	}
+
+	err = readGroupsModels()
+	return
 }
 
 func newGitlabLiteByApi() (*lite.GitlabLiteByAPI, error) {
@@ -53,6 +59,9 @@ func newGitlabLiteByApi() (*lite.GitlabLiteByAPI, error) {
 func init() {
 	groupModelCmd.AddCommand(groupModelGitlabApiCmd)
 
-	_ = groupModelCmd.MarkPersistentFlagRequired(
-		FlagGitlabAccessToken(groupModelCmd.Flags(), &gitlabAccessToken))
+	_ = groupModelGitlabApiCmd.MarkPersistentFlagRequired(
+		FlagGitlabUrl(groupModelGitlabApiCmd.Flags(), &gitlabUrl))
+
+	_ = groupModelGitlabApiCmd.MarkPersistentFlagRequired(
+		FlagGitlabAccessToken(groupModelGitlabApiCmd.Flags(), &gitlabAccessToken))
 }

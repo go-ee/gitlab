@@ -87,9 +87,6 @@ func init() {
 	rootCmd.AddCommand(groupModelCmd)
 
 	_ = groupModelCmd.MarkPersistentFlagRequired(
-		FlagGitlabUrl(groupModelCmd.PersistentFlags(), &gitlabUrl))
-
-	_ = groupModelCmd.MarkPersistentFlagRequired(
 		FlagGroups(groupModelCmd.PersistentFlags(), &groups))
 
 	FlagGroupModelFileName(groupModelCmd.PersistentFlags(), &groupsModelFileName)
@@ -99,5 +96,5 @@ func init() {
 	FlagStoreGroupModel(groupModelCmd.PersistentFlags(), &storeGroupModel)
 
 	FlagOfflineSupport(groupModelCmd.PersistentFlags(), &offlineModeSupport)
-	FlagOfflineGroupsDir(groupModelCmd.PersistentFlags(), &outputDir)
+	FlagOfflineGroupsDir(groupModelCmd.PersistentFlags(), &offlineGroupsDir)
 }

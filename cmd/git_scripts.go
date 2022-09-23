@@ -22,21 +22,101 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"github.com/go-ee/filegen/gen"
+	"github.com/go-ee/gitlab/templates"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
-// gitScriptsCmd represents the gitScripts command
-var gitScriptsCmd = &cobra.Command{
-	Use:              "git-scripts",
-	Short:            "Generate Git scripts (clone, pull, push, etc.) based on group model",
-	TraverseChildren: true,
-	Run: func(cmd *cobra.Command, args []string) {
+var gitScriptsCmdUse = "git-scripts"
+var gitScriptsCmdShort = "Generate Git scripts (clone, pull, push, etc.) based on group model"
 
+// gitScriptsCmd represents the generateGitScripts command
+var gitScriptsCmd = &cobra.Command{
+	Use:              gitScriptsCmdUse,
+	Short:            gitScriptsCmdShort,
+	TraverseChildren: true,
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		err = generateGitScripts()
+		return
 	},
 }
 
+var gitScriptsByApiCmd = &cobra.Command{
+	Use:              gitScriptsCmdUse,
+	Short:            gitScriptsCmdShort,
+	TraverseChildren: true,
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = modelByApi(); err != nil {
+			return
+		}
+		err = generateGitScripts()
+		return
+	},
+}
+
+var gitScriptsByBrowserCmd = &cobra.Command{
+	Use:              gitScriptsCmdUse,
+	Short:            gitScriptsCmdShort,
+	TraverseChildren: true,
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = modelByBrowser(); err != nil {
+			return
+		}
+		err = generateGitScripts()
+		return
+	},
+}
+
+var gitScriptsByOfflineCmd = &cobra.Command{
+	Use:              gitScriptsCmdUse,
+	Short:            gitScriptsCmdShort,
+	TraverseChildren: true,
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		if err = modelByOffline(); err != nil {
+			return
+		}
+		err = generateGitScripts()
+		return
+	},
+}
+
+func generateGitScripts() (err error) {
+	var templateProvider *gen.NextTemplateProvider
+	if templateProvider, err = gen.NewNextTemplateProviderFromText(
+		templates.Templates(), templates.MacrosTemplates()); err != nil {
+		return
+	}
+
+	var absOutDir string
+	if absOutDir, err = filepath.Abs(outputDir); err != nil {
+		return
+	}
+
+	var dataFiles []string
+	if dataFiles, err = gen.CollectFilesRecursive(filepath.Join(absOutDir, groupsModelFileName)); err != nil {
+		return
+	}
+	templateDataProvider := &gen.ArrayNextProvider[gen.DataLoader]{
+		Items: gen.FilesToTemplateDataLoaders(dataFiles),
+	}
+	generator := &gen.Generator{
+		FileNameBuilder: &gen.DefaultsFileNameBuilder{
+			OutputPath: "", RelativeToTemplate: false, RelativeToData: true},
+		NextTemplateLoader:     templateProvider,
+		NextTemplateDataLoader: templateDataProvider,
+	}
+	err = generator.Generate()
+	return
+}
+
 func init() {
-	groupModelGitlabApiCmd.AddCommand(gitScriptsCmd)
-	groupModelBrowserCmd.AddCommand(gitScriptsCmd)
-	groupModelOfflineCmd.AddCommand(gitScriptsCmd)
+	groupModelGitlabApiCmd.AddCommand(gitScriptsByApiCmd)
+	groupModelBrowserCmd.AddCommand(gitScriptsByBrowserCmd)
+	groupModelOfflineCmd.AddCommand(gitScriptsByOfflineCmd)
+
+	rootCmd.AddCommand(gitScriptsCmd)
+
+	FlagGroupModelFileName(gitScriptsCmd.PersistentFlags(), &groupsModelFileName)
+	FlagOutputDir(gitScriptsCmd.PersistentFlags(), &outputDir)
 }
