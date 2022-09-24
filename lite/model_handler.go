@@ -16,6 +16,7 @@ type ModelHandler interface {
 
 type JsonWriterModelHandler struct {
 	OutputDir           string
+	OfflineGroupsDir    string
 	GroupsModelFileName string
 	WriteGroup          bool
 	WriteGroupNode      bool
@@ -70,7 +71,7 @@ func (o *JsonWriterModelHandler) writeJsonFile(content interface{}, targetFile s
 }
 
 func (o *JsonWriterModelHandler) buildGroupFilePath(groupNameOrId interface{}) string {
-	return filepath.Join(o.OutputDir, fmt.Sprintf("%v", groupNameOrId)+".json")
+	return filepath.Join(o.OutputDir, o.OfflineGroupsDir, fmt.Sprintf("%v", groupNameOrId)+".json")
 }
 
 func (o *JsonWriterModelHandler) buildGroupModelFilePath(groupName string) string {

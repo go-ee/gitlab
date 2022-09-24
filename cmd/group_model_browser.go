@@ -69,7 +69,7 @@ func init() {
 	groupModelCmd.AddCommand(groupModelBrowserCmd)
 
 	_ = groupModelBrowserCmd.MarkPersistentFlagRequired(
-		FlagGitlabUrl(groupModelBrowserCmd.Flags(), &gitlabUrl))
+		FlagGitlabUrl(groupModelBrowserCmd.PersistentFlags(), &gitlabUrl))
 
 	FlagWaitForAuthInteractive(groupModelBrowserCmd.PersistentFlags(), &waitForAuthInteractive)
 	FlagInstallEmbeddedBrowsers(groupModelBrowserCmd.PersistentFlags(), &installDriversAndEmbeddedBrowsers)

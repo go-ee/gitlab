@@ -30,9 +30,10 @@ var gitlabAccessToken string
 
 // groupModelGitlabApiCmd represents the groupModelGitlabApi command
 var groupModelGitlabApiCmd = &cobra.Command{
-	Use:   "by-api",
-	Short: "Use Gitlab API for Gitlab group reading",
-	Long:  `This is the recommended way when Gitlab API is accessible.`,
+	Use:              "by-api",
+	Short:            "Use Gitlab API for Gitlab group reading",
+	Long:             `This is the recommended way when Gitlab API is accessible.`,
+	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		err = modelByApi()
 		return
@@ -60,8 +61,8 @@ func init() {
 	groupModelCmd.AddCommand(groupModelGitlabApiCmd)
 
 	_ = groupModelGitlabApiCmd.MarkPersistentFlagRequired(
-		FlagGitlabUrl(groupModelGitlabApiCmd.Flags(), &gitlabUrl))
+		FlagGitlabUrl(groupModelGitlabApiCmd.PersistentFlags(), &gitlabUrl))
 
 	_ = groupModelGitlabApiCmd.MarkPersistentFlagRequired(
-		FlagGitlabAccessToken(groupModelGitlabApiCmd.Flags(), &gitlabAccessToken))
+		FlagGitlabAccessToken(groupModelGitlabApiCmd.PersistentFlags(), &gitlabAccessToken))
 }

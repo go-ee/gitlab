@@ -6,7 +6,7 @@ import (
 )
 
 //go:embed macros/gitscript.gtpl
-var macrusGitscript string
+var macrosGitScript string
 
 //go:embed clone.sh.gtpl
 var clone string
@@ -20,8 +20,8 @@ var status string
 func MacrosTemplates() (ret []*gen.TemplateSource) {
 	ret = []*gen.TemplateSource{
 		{
-			Text:   clone,
-			Source: "github.com/go-ee/gitlab/templates/macros/gitsrict.sh.gtpl",
+			Text:   macrosGitScript,
+			Source: "github.com/go-ee/gitlab/templates/macros/gitscript.gtpl",
 		},
 	}
 	return

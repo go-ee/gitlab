@@ -33,7 +33,7 @@ var gitlabUrlApiPart = "api/v4"
 var groups []string
 var ignoreGroups []string
 var outputDir = "."
-var offlineModeSupport = true
+var offlineModeSupport = false
 var offlineGroupsDir = ".gitlab"
 var offlineGroupsFilesPattern = ".+?\\.json$"
 var groupsModelFileName = ".gitlab.json"
@@ -75,6 +75,7 @@ func newJsonModelWriter() (ret *lite.JsonWriterModelHandler, err error) {
 	}
 	ret = &lite.JsonWriterModelHandler{
 		OutputDir:           absOutputDir,
+		OfflineGroupsDir:    offlineGroupsDir,
 		GroupsModelFileName: groupsModelFileName,
 		WriteGroup:          offlineModeSupport,
 		WriteGroupNode:      storeGroupModel,
