@@ -8,6 +8,9 @@ import (
 //go:embed macros/gitscript.gtpl
 var macrosGitScript string
 
+//go:embed macros/gitscript_repo.gtpl
+var macrosGitScriptRepo string
+
 //go:embed clone.sh.gtpl
 var clone string
 
@@ -22,6 +25,10 @@ func MacrosTemplates() (ret []*gen.TemplateSource) {
 		{
 			Text:   macrosGitScript,
 			Source: "github.com/go-ee/gitlab/templates/macros/gitscript.gtpl",
+		},
+		{
+			Text:   macrosGitScriptRepo,
+			Source: "github.com/go-ee/gitlab/templates/macros/gitscript_repo.gtpl",
 		},
 	}
 	return
