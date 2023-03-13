@@ -25,8 +25,8 @@ func (o *GitlabLiteByAPI) GetGroup(groupId int) (ret *gitlab.Group, err error) {
 }
 
 func (o *GitlabLiteByAPI) ListSubgroups(groupId int) (ret []*gitlab.Group, err error) {
-	options := &gitlab.ListSubgroupsOptions{AllAvailable: new(bool)}
-	ret, _, err = o.client.Groups.ListSubgroups(groupId, options)
+	options := &gitlab.ListSubGroupsOptions{AllAvailable: new(bool)}
+	ret, _, err = o.client.Groups.ListSubGroups(groupId, options)
 	return
 }
 
