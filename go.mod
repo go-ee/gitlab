@@ -55,6 +55,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/go-ee/utils => ../utils/
+// replace github.com/go-ee/utils => ../utils/
 
-replace github.com/go-ee/filegen => ../filegen/
+// replace github.com/go-ee/filegen => ../filegen/
