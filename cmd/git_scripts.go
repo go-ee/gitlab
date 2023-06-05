@@ -102,7 +102,7 @@ func generateGitScripts() (err error) {
 	}
 	generator := &gen.Generator{
 		FileNameBuilder: &gen.DefaultsFileNameBuilder{
-			OutputPath: "", RelativeToTemplate: false, RelativeToData: true},
+			OutputPath: absOutDir, RelativeToTemplate: false, RelativeToData: true},
 		NextTemplateLoader:     templateProvider,
 		NextTemplateDataLoader: templateDataProvider,
 	}
