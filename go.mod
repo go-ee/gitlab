@@ -3,7 +3,7 @@ module github.com/go-ee/gitlab
 go 1.19
 
 require (
-	github.com/go-ee/filegen v0.0.0-20230605180245-f80af4c037b8
+	github.com/go-ee/filegen v0.0.0-20230605181550-849931ef635b
 	github.com/go-ee/utils v0.0.0-20230430132714-5017a795b477
 	github.com/playwright-community/playwright-go v0.2000.1
 	github.com/spf13/cobra v1.7.0
