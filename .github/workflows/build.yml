@@ -1,4 +1,4 @@
-name: Go release
+name: Go build
 
 on: [push]
 
@@ -15,10 +15,7 @@ jobs:
           go-version: '1.19.x'
 
       - name: Build
-        run: ./releases.sh
+        run: go build -v ./...
 
-      - name: Upload Go test results
-        uses: actions/upload-artifact@v3
-        with:
-          name: Go-releases
-          path: RELEASES/*
+      - name: Test
+        run: go test -v ./...
