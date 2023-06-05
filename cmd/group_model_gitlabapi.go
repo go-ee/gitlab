@@ -35,21 +35,23 @@ var groupModelGitlabApiCmd = &cobra.Command{
 	Long:             `This is the recommended way when Gitlab API is accessible.`,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		err = modelByApi()
+		_, err = modelByApi()
 		return
 	},
 }
 
-func modelByApi() (err error) {
+func modelByApi() (ret []string, err error) {
 	if gitlabLite, err = newGitlabLiteByApi(); err != nil {
 		return
 	}
 
-	if modelHandler, err = newJsonModelWriter(); err != nil {
+	var jsonModelWriter *lite.JsonWriterModelHandler
+	if jsonModelWriter, err = newJsonModelWriter(); err != nil {
 		return
 	}
 
-	err = readGroupsModels()
+	err = readGroupsModels(jsonModelWriter)
+	ret = jsonModelWriter.Files
 	return
 }
 

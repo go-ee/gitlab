@@ -40,7 +40,6 @@ var groupsModelFileName = ".gitlab.json"
 var storeGroupModel = true
 
 var gitlabLite lite.GitlabLite
-var modelHandler lite.ModelHandler
 
 // groupModelCmd represents the groupsModel command
 var groupModelCmd = &cobra.Command{
@@ -49,7 +48,7 @@ var groupModelCmd = &cobra.Command{
 	TraverseChildren: true,
 }
 
-func readGroupsModels() (err error) {
+func readGroupsModels(modelHandler lite.ModelHandler) (err error) {
 	modelReader := &lite.ModelReader{
 		Client:           gitlabLite,
 		IgnoreGroupNames: SliceToMap(ignoreGroups),

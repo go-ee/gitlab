@@ -18,14 +18,19 @@ type JsonWriterModelHandler struct {
 	OutputDir           string
 	OfflineGroupsDir    string
 	GroupsModelFileName string
-	WriteGroup          bool
-	WriteGroupNode      bool
-	WriteSubGroup       bool
+
+	WriteGroup     bool
+	WriteGroupNode bool
+	WriteSubGroup  bool
+
+	Files []string
 }
 
 func (o *JsonWriterModelHandler) OnGroup(group *gitlab.Group) (err error) {
 	if o.WriteGroup {
 		targetFile := o.buildGroupFilePath(group.ID)
+		o.Files = append(o.Files, targetFile)
+
 		lg.LOG.Infof("write Gitlab group '%v' to '%v'", group.Name, targetFile)
 		err = o.writeJsonFile(group, targetFile)
 	}
@@ -35,6 +40,8 @@ func (o *JsonWriterModelHandler) OnGroup(group *gitlab.Group) (err error) {
 func (o *JsonWriterModelHandler) OnGroupNode(groupNode *GroupNode) (err error) {
 	if o.WriteGroupNode {
 		targetFile := filepath.Join(o.OutputDir, groupNode.RelativeRootPath, o.GroupsModelFileName)
+		o.Files = append(o.Files, targetFile)
+
 		lg.LOG.Infof("write Gitlab model '%v(%v)' to '%v'", groupNode.Group.Name, groupNode.Group.ID, targetFile)
 		if err = o.writeJsonFile(groupNode, targetFile); err != nil {
 			return

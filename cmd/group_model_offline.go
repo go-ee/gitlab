@@ -33,19 +33,23 @@ var groupModelOfflineCmd = &cobra.Command{
 	Long:             `This operation can be used without connection to Gitlab when Gitlab groups files were downloaded before`,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		return modelByOffline()
+		_, err = modelByOffline()
+		return
 	},
 }
 
-func modelByOffline() (err error) {
+func modelByOffline() (ret []string, err error) {
 	if gitlabLite, err = lite.NewGitlabLiteMemJson(offlineGroupsDir, offlineGroupsFilesPattern); err != nil {
 		return
 	}
-	if modelHandler, err = newJsonModelWriter(); err != nil {
+
+	var jsonModelWriter *lite.JsonWriterModelHandler
+	if jsonModelWriter, err = newJsonModelWriter(); err != nil {
 		return
 	}
 
-	err = readGroupsModels()
+	err = readGroupsModels(jsonModelWriter)
+	ret = jsonModelWriter.Files
 	return
 }
 

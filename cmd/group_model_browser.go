@@ -38,23 +38,26 @@ var groupModelBrowserCmd = &cobra.Command{
             This operation requires GUI desktop for manual interaction for authentication to Gitlab.`,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		return modelByBrowser()
+		_, err = modelByBrowser()
+		return
 	},
 }
 
-func modelByBrowser() (err error) {
+func modelByBrowser() (ret []string, err error) {
 	var gitlabLiteNyBrowser *lite.GitlabLiteByBrowser
 	if gitlabLiteNyBrowser, err = lite.NewGitlabLiteByBrowser(buildBrowserAccess(), installDriversAndEmbeddedBrowsers); err != nil {
 		return
 	}
 	gitlabLite = gitlabLiteNyBrowser
 
-	if modelHandler, err = newJsonModelWriter(); err != nil {
+	var jsonModelWriter *lite.JsonWriterModelHandler
+	if jsonModelWriter, err = newJsonModelWriter(); err != nil {
 		return
 	}
 
 	if err = gitlabLiteNyBrowser.AuthInteractive(waitForAuthInteractive); err == nil {
-		err = readGroupsModels()
+		err = readGroupsModels(jsonModelWriter)
+		ret = jsonModelWriter.Files
 	}
 	return
 }

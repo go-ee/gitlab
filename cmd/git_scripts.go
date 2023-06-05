@@ -37,7 +37,17 @@ var gitScriptsCmd = &cobra.Command{
 	Short:            gitScriptsCmdShort,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		err = generateGitScripts()
+		var absOutDir string
+		if absOutDir, err = filepath.Abs(outputDir); err != nil {
+			return
+		}
+
+		var modelFiles []string
+		if modelFiles, err = gen.CollectFilesRecursive(filepath.Join(absOutDir, groupsModelFileName)); err != nil {
+			return
+		}
+
+		err = generateGitScripts(modelFiles)
 		return
 	},
 }
@@ -47,10 +57,11 @@ var gitScriptsByApiCmd = &cobra.Command{
 	Short:            gitScriptsCmdShort,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if err = modelByApi(); err != nil {
+		var modelFiles []string
+		if modelFiles, err = modelByApi(); err != nil {
 			return
 		}
-		err = generateGitScripts()
+		err = generateGitScripts(modelFiles)
 		return
 	},
 }
@@ -60,10 +71,11 @@ var gitScriptsByBrowserCmd = &cobra.Command{
 	Short:            gitScriptsCmdShort,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if err = modelByBrowser(); err != nil {
+		var modelFiles []string
+		if modelFiles, err = modelByBrowser(); err != nil {
 			return
 		}
-		err = generateGitScripts()
+		err = generateGitScripts(modelFiles)
 		return
 	},
 }
@@ -73,36 +85,28 @@ var gitScriptsByOfflineCmd = &cobra.Command{
 	Short:            gitScriptsCmdShort,
 	TraverseChildren: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if err = modelByOffline(); err != nil {
+		var modelFiles []string
+		if modelFiles, err = modelByOffline(); err != nil {
 			return
 		}
-		err = generateGitScripts()
+		err = generateGitScripts(modelFiles)
 		return
 	},
 }
 
-func generateGitScripts() (err error) {
+func generateGitScripts(modelFiles []string) (err error) {
 	var templateProvider *gen.NextTemplateProvider
 	if templateProvider, err = gen.NewNextTemplateProviderFromText(
 		templates.Templates(), templates.MacrosTemplates()); err != nil {
 		return
 	}
 
-	var absOutDir string
-	if absOutDir, err = filepath.Abs(outputDir); err != nil {
-		return
-	}
-
-	var dataFiles []string
-	if dataFiles, err = gen.CollectFilesRecursive(filepath.Join(absOutDir, groupsModelFileName)); err != nil {
-		return
-	}
 	templateDataProvider := &gen.ArrayNextProvider[gen.DataLoader]{
-		Items: gen.FilesToTemplateDataLoaders(dataFiles),
+		Items: gen.FilesToTemplateDataLoaders(modelFiles),
 	}
 	generator := &gen.Generator{
 		FileNameBuilder: &gen.DefaultsFileNameBuilder{
-			OutputPath: "", RelativeToTemplate: false, RelativeToData: true},
+			RelativePathOrFullPath: "", RelativeToTemplate: false, RelativeToData: true},
 		NextTemplateLoader:     templateProvider,
 		NextTemplateDataLoader: templateDataProvider,
 	}
