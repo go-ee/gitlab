@@ -24,6 +24,7 @@ package cmd
 import (
 	"github.com/go-ee/filegen/gen"
 	"github.com/go-ee/gitlab/templates"
+	"github.com/go-ee/utils/lg"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
@@ -95,6 +96,7 @@ var gitScriptsByOfflineCmd = &cobra.Command{
 }
 
 func generateGitScripts(modelFiles []string) (err error) {
+	lg.LOG.Debugf("model files: %v", modelFiles)
 	var templateProvider *gen.NextTemplateProvider
 	if templateProvider, err = gen.NewNextTemplateProviderFromText(
 		templates.Templates(), templates.MacrosTemplates()); err != nil {
