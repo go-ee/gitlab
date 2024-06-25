@@ -1,6 +1,6 @@
 module github.com/go-ee/gitlab
 
-go 1.19
+go 1.22
 
 require (
 	github.com/go-ee/filegen v0.0.0-20230720111750-db4bbc5ebee3
